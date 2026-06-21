@@ -14,6 +14,8 @@ export const metadata = {
   alternates: { canonical: "/collections" },
 };
 
+export const revalidate = 60;
+
 const occasions = [
   { label: "3 Piece Sets", href: "/shop/three-piece-sets" },
   { label: "Festive Sarees", href: "/shop/sarees" },

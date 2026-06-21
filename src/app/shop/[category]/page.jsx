@@ -5,6 +5,8 @@ import { getProductsByCategory } from "@/lib/products";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   return categories.map((c) => ({ category: c.slug }));
 }

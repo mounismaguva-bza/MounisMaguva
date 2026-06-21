@@ -9,6 +9,8 @@ import {
 import { site } from "@/lib/site";
 import { notFound } from "next/navigation";
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   const products = await getAllProducts();
   return products.map((p) => ({ slug: p.slug }));

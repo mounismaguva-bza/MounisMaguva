@@ -4,6 +4,7 @@ import { COLLECTIONS, dbNow, listCollection, setDocument } from "@/lib/firestore
 import { normalizeProductInput } from "@/lib/admin-models";
 import { requireAdminApi, jsonError } from "@/lib/admin-api";
 import { canAddProduct, getStoredProductCount, MAX_PRODUCTS } from "@/lib/product-limits";
+import { revalidateStorefront } from "@/lib/revalidate-storefront";
 
 export async function GET(request) {
   const { error } = await requireAdminApi(request);
@@ -50,6 +51,7 @@ export async function POST(request) {
       createdAt: dbNow(),
       updatedAt: dbNow(),
     });
+    revalidateStorefront(data.slug);
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (routeError) {
     return jsonError(routeError);
