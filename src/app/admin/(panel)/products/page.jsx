@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AdminTableActions } from "@/components/admin/OrderManageUI";
+import { AdminTableActions, ProductStockBadge } from "@/components/admin/OrderManageUI";
 import { formatPrice } from "@/lib/format";
 import { getProductThumbnail } from "@/lib/product-images";
 
@@ -63,8 +63,11 @@ export default function AdminProductsPage() {
           </p>
         </div>
         {canAdd ? (
-          <Link href="/admin/products/new" className="admin-btn-primary">
-            Add product
+          <Link
+            href="/admin/products/new"
+            className="admin-btn-primary inline-flex items-center gap-2 whitespace-nowrap"
+          >
+            + Add product
           </Link>
         ) : (
           <span className="rounded-full border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-muted)]">
@@ -100,8 +103,8 @@ export default function AdminProductsPage() {
                   <th className="px-4 py-3 font-semibold">SKU</th>
                   <th className="px-4 py-3 font-semibold">Category</th>
                   <th className="px-4 py-3 font-semibold">Price</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                  <th className="px-4 py-3 font-semibold whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 font-semibold text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,18 +155,10 @@ export default function AdminProductsPage() {
                       <td className="px-4 py-3 font-medium text-[var(--color-primary)]">
                         {formatPrice(product.price || 0)}
                       </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            product.inStock !== false
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {product.inStock !== false ? "In stock" : "Out of stock"}
-                        </span>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <ProductStockBadge inStock={product.inStock} />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <AdminTableActions
                           manageHref={`/admin/products/${product.id}`}
                           manageLabel="Edit"

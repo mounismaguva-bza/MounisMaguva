@@ -1,6 +1,7 @@
 "use client";
 
 import ProductImage from "@/components/product/ProductImage";
+import ProductImageZoom from "@/components/product/ProductImageZoom";
 import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -42,6 +43,7 @@ export default function ProductImageGallery({
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const panStart = useRef(null);
   const pinchStart = useRef(null);
 
@@ -56,6 +58,7 @@ export default function ProductImageGallery({
   const resetZoom = useCallback(() => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
+    setZoomOrigin({ x: 50, y: 50 });
   }, []);
 
   const closeFullscreen = useCallback(() => {
@@ -132,9 +135,11 @@ export default function ProductImageGallery({
     lightboxApi.reInit({ watchDrag: zoom <= 1 });
   }, [lightboxApi, zoom]);
 
-  function openFullscreen(index = selectedIndex) {
+  function openFullscreen(index = selectedIndex, origin = { x: 50, y: 50 }) {
     onSelectIndex(index);
-    resetZoom();
+    setZoomOrigin(origin);
+    setZoom(2);
+    setPan({ x: 0, y: 0 });
     setFullscreenOpen(true);
   }
 
@@ -292,46 +297,34 @@ export default function ProductImageGallery({
                 {images.map((src, i) => (
                   <div
                     key={src}
-                    className="relative aspect-[4/5] min-w-0 shrink-0 grow-0 basis-full cursor-zoom-in sm:aspect-[3/4] lg:aspect-[4/5] lg:max-h-[min(72vh,640px)] xl:max-h-[min(78vh,720px)] 2xl:max-h-[min(80vh,780px)]"
-                    onClick={() => openFullscreen(i)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") openFullscreen(i);
-                    }}
-                    aria-label={`View image ${i + 1} fullscreen`}
+                    className="relative aspect-[4/5] min-w-0 shrink-0 grow-0 basis-full sm:aspect-[3/4] lg:aspect-[4/5] lg:max-h-[min(72vh,640px)] xl:max-h-[min(78vh,720px)] 2xl:max-h-[min(80vh,780px)]"
                   >
-                    <ProductImage
+                    <ProductImageZoom
                       src={src}
                       alt={`${alt} — view ${i + 1}`}
-                      fill
-                      className="object-cover"
                       priority={i === 0}
                       sizes="(max-width: 768px) 100vw, (max-width: 1280px) 48vw, 620px"
-                    />
-                    {i === selectedIndex && (isBestSeller || isNew) && (
-                      <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
-                        {isBestSeller && <HotBadge />}
-                        {isNew && <Badge variant="gold">New</Badge>}
-                      </div>
-                    )}
-                    {i === selectedIndex && discount && (
-                      <Badge
-                        variant="sale"
-                        className={cn(
-                          "absolute z-10",
-                          onShare ? "top-14 right-3" : "top-4 right-4",
-                        )}
-                      >
-                        -{discount}%
-                      </Badge>
-                    )}
-                    <div className="pointer-events-none absolute inset-0 z-[1] hidden bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition-opacity group-hover/main:opacity-100 lg:block" />
-                    <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm lg:opacity-0 lg:transition-opacity lg:group-hover/main:opacity-100">
-                      <Maximize2 className="size-3.5" />
-                      <span className="hidden sm:inline">Click to zoom</span>
-                      <span className="sm:hidden">Tap to zoom</span>
-                    </div>
+                      className="absolute inset-0"
+                      onOpenFullscreen={(origin) => openFullscreen(i, origin)}
+                    >
+                      {i === selectedIndex && (isBestSeller || isNew) && (
+                        <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
+                          {isBestSeller && <HotBadge />}
+                          {isNew && <Badge variant="gold">New</Badge>}
+                        </div>
+                      )}
+                      {i === selectedIndex && discount && (
+                        <Badge
+                          variant="sale"
+                          className={cn(
+                            "absolute z-10",
+                            onShare ? "top-14 right-3" : "top-4 right-4",
+                          )}
+                        >
+                          -{discount}%
+                        </Badge>
+                      )}
+                    </ProductImageZoom>
                   </div>
                 ))}
               </div>
@@ -490,6 +483,7 @@ export default function ProductImageGallery({
                     )}
                     style={{
                       transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                      transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
                     }}
                     onDoubleClick={handleDoubleClick}
                     onPointerDown={handlePointerDown}
@@ -514,7 +508,7 @@ export default function ProductImageGallery({
           </div>
 
           <p className="border-t border-white/10 px-4 py-3 text-center text-xs text-white/70">
-            Swipe to change image · Pinch or +/- to zoom · Double-tap to toggle zoom
+            Swipe to change image · Hover or click to zoom on desktop · Double-tap for fullscreen
           </p>
         </div>
       )}

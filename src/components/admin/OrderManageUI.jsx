@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Pencil, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import {
   ORDER_STATUS_CONFIG,
@@ -16,9 +17,30 @@ export function OrderStatusBadge({ status, className = "" }) {
 
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getOrderStatusStyle(normalized)} ${className}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold ${getOrderStatusStyle(normalized)} ${className}`}
     >
+      <span className="size-1.5 shrink-0 rounded-full bg-current opacity-70" aria-hidden />
       {label}
+    </span>
+  );
+}
+
+export function ProductStockBadge({ inStock = true, className = "" }) {
+  const available = inStock !== false;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold ${
+        available
+          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+          : "border-red-200 bg-red-50 text-red-700"
+      } ${className}`}
+    >
+      <span
+        className={`size-1.5 shrink-0 rounded-full ${available ? "bg-emerald-500" : "bg-red-500"}`}
+        aria-hidden
+      />
+      {available ? "In stock" : "Out of stock"}
     </span>
   );
 }
@@ -123,19 +145,23 @@ export function AdminTableActions({
   deleteLabel = "Delete",
 }) {
   return (
-    <div className="flex items-center justify-end gap-0.5 text-xs">
-      <Link href={manageHref} className="admin-action-link">
+    <div className="flex items-center justify-end gap-2">
+      <Link
+        href={manageHref}
+        className="admin-btn-sm inline-flex items-center gap-1.5 whitespace-nowrap"
+      >
+        <Pencil className="size-3.5 shrink-0" aria-hidden />
         {manageLabel}
       </Link>
       {onDelete ? (
-        <>
-          <span className="px-1 text-[var(--color-border)]" aria-hidden>
-            ·
-          </span>
-          <button type="button" onClick={onDelete} className="admin-action-danger">
-            {deleteLabel}
-          </button>
-        </>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="admin-btn-sm-danger inline-flex items-center gap-1.5 whitespace-nowrap"
+        >
+          <Trash2 className="size-3.5 shrink-0" aria-hidden />
+          {deleteLabel}
+        </button>
       ) : null}
     </div>
   );

@@ -8,14 +8,14 @@
 /** @type {HeroImage[]} */
 export const heroImages = [
   {
-    src: "/hero/h1.png",
+    src: "/hero/he1.png",
     alt: "Mouni's Maguva — ethnic wear collection",
     width: 1774,
     height: 887,
     href: "/shop",
   },
   {
-    src: "/hero/he2.png",
+    src: "/hero/her2.png",
     alt: "Mouni's Maguva — festive sarees and sets",
     width: 1536,
     height: 1024,
@@ -23,7 +23,7 @@ export const heroImages = [
     objectPosition: "center 10%",
   },
   {
-    src: "/hero/h3.png",
+    src: "/hero/he3.png",
     alt: "Mouni's Maguva — ethnic wear collection",
     width: 1536,
     height: 1024,
