@@ -436,21 +436,25 @@ body {
   }
 
   .launch-enter-btn {
-    color: var(--color-primary);
-    background: linear-gradient(180deg, #fff9f0 0%, #f5ebdc 100%);
+    color: #3d0c0c;
+    background: linear-gradient(180deg, #e4c878 0%, #c9a227 55%, #b8921f 100%);
+    border: 1px solid rgba(255, 249, 240, 0.35);
     box-shadow:
-      0 4px 24px rgba(0, 0, 0, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      0 4px 24px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 249, 240, 0.45);
     transition:
       transform 0.25s ease,
-      box-shadow 0.25s ease;
+      box-shadow 0.25s ease,
+      background 0.25s ease;
   }
 
   .launch-enter-btn:hover {
+    color: #2a0808;
+    background: linear-gradient(180deg, #edd48a 0%, #d4af37 55%, #c9a227 100%);
     transform: translateY(-2px);
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      0 0 40px rgba(255, 249, 240, 0.15);
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 36px rgba(201, 162, 39, 0.28);
   }
 
   .launch-curtain {
