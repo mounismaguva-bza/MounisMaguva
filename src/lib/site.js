@@ -9,7 +9,7 @@ export const site = {
   tagline: "Style for Every Occasion",
   description:
     "Discover handpicked sarees, 3 piece sets, dresses and kurtis. Curated ethnic wear with timeless Indian craftsmanship.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://maguvaethnics.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.mounismaguva.com",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "918500947079",
   instagram: "https://www.instagram.com/maguva_ethinics",
   instagramHandle: "@maguva_ethinics",

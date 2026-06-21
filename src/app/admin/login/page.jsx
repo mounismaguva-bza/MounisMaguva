@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { Eye, EyeOff } from "lucide-react";
 import { getFirebaseClientAuth } from "@/lib/firebase/client";
 
 function mapAuthError(code) {
@@ -28,6 +29,7 @@ export default function AdminLoginPage() {
   const [hintUid, setHintUid] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/auth/session", { credentials: "include" })
@@ -88,12 +90,6 @@ export default function AdminLoginPage() {
         <h1 className="font-[family-name:var(--font-display)] text-3xl text-[var(--color-primary)]">
           Admin Login
         </h1>
-        <p className="mt-2 text-sm text-[var(--color-muted)]">
-          Sign in with your Firebase email and password. Admin access requires a Firestore user
-          profile with document ID equal to your Auth UID and{" "}
-          <code className="text-xs">role: &quot;admin&quot;</code>.
-        </p>
-
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium" htmlFor="admin-email">
@@ -113,25 +109,37 @@ export default function AdminLoginPage() {
             <label className="mb-1 block text-sm font-medium" htmlFor="admin-password">
               Password
             </label>
-            <input
-              id="admin-password"
-              className="input-field"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+            <div className="relative">
+              <input
+                id="admin-password"
+                className="input-field pr-11"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" aria-hidden />
+                ) : (
+                  <Eye className="size-4" aria-hidden />
+                )}
+              </button>
+            </div>
           </div>
           {error ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               <p>{error}</p>
               {hintUid ? (
                 <p className="mt-2 text-xs">
-                  Your UID: <code className="break-all">{hintUid}</code>
-                  <br />
-                  In Firestore create: <code>users/{hintUid}</code> with fields{" "}
-                  <code>role: &quot;admin&quot;</code> and <code>email</code>.
+                  User Invalid
                 </p>
               ) : null}
             </div>

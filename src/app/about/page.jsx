@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 export const metadata = {
   title: "Our Story",
   description: `Learn about ${site.name} — premium ethnic wear for women.`,
+  alternates: { canonical: "/about" },
 };
 
 export default async function AboutPage() {

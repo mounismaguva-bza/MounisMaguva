@@ -13,7 +13,6 @@ import { useCart } from "@/context/CartContext";
 import { formatDiscount, formatPrice } from "@/lib/format";
 import {
   getColorOptions,
-  getProductBullets,
 } from "@/lib/product-details";
 import {
   getWhatsAppInquiryUrl,
@@ -24,8 +23,8 @@ import { Badge } from "@/components/ui/badge";
 import HotBadge from "@/components/product/HotBadge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import ProductDetailsSection from "@/components/product/ProductDetailsSection";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
-import ProductInfoCards from "@/components/product/ProductInfoCards";
 import ProductCard from "@/components/product/ProductCard";
 import { getImagesForColor, getProductThumbnail } from "@/lib/product-images";
 import { shareProduct } from "@/lib/share-product";
@@ -82,7 +81,6 @@ export default function ProductDetail({ product, related = [] }) {
   }, [selectedColorId, sizesForSelectedColor]);
 
   const discount = formatDiscount(product.originalPrice, product.price);
-  const bullets = getProductBullets(product, colorOptions.length);
   const referenceImage = galleryImages[0] || getProductThumbnail(product);
 
   useEffect(() => {
@@ -424,31 +422,7 @@ export default function ProductDetail({ product, related = [] }) {
         </div>
       </div>
 
-      <div className="mt-10 rounded-2xl border border-[var(--color-border)] bg-white/60 p-5 sm:p-6 lg:mt-12 lg:p-8 xl:mt-14">
-        <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between lg:mb-8">
-          <h2 className="font-[family-name:var(--font-display)] text-xl text-[var(--color-primary)] sm:text-2xl">
-            Product details
-          </h2>
-          <p className="text-xs text-[var(--color-muted)]">
-            Fabric, fit, and care information
-          </p>
-        </div>
-        <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:gap-5 xl:grid-cols-3">
-          {bullets.map((item) => (
-            <li
-              key={item.label}
-              className="rounded-xl border border-[var(--color-border)] bg-white p-4 text-sm shadow-sm transition-shadow hover:shadow-md sm:p-5"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-primary)]/80">
-                {item.label}
-              </p>
-              <p className="mt-2 leading-relaxed text-[var(--color-text)]">{item.value}</p>
-            </li>
-          ))}
-        </ul>
-
-        <ProductInfoCards />
-      </div>
+      <ProductDetailsSection product={product} colorCount={colorOptions.length} />
 
       {related.length > 0 && (
         <section className="mt-12 border-t border-[var(--color-border)] pt-10 lg:mt-14 lg:pt-12 xl:mt-16">

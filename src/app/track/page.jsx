@@ -3,6 +3,7 @@ import TrackOrderForm from "@/components/order/TrackOrderForm";
 export const metadata = {
   title: "Track Order",
   description: "Track your Mouni's Maguva order by mobile number or email.",
+  alternates: { canonical: "/track" },
 };
 
 export default function TrackOrderPage() {

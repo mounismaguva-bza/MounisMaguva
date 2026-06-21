@@ -8,6 +8,7 @@ import { site } from "@/lib/site";
 export const metadata = {
   title: "Instagram",
   description: `Latest posts and looks from ${site.name} on Instagram.`,
+  alternates: { canonical: "/instagram" },
 };
 
 export default async function InstagramPage() {

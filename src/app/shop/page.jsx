@@ -7,6 +7,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Shop All",
   description: "Browse our full collection of sarees, 3 piece sets, dresses and more.",
+  alternates: { canonical: "/shop" },
 };
 
 export default async function ShopPage() {

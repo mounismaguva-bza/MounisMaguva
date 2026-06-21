@@ -11,6 +11,7 @@ import { getNewArrivals } from "@/lib/products";
 export const metadata = {
   title: "Collections",
   description: "Explore curated ethnic wear collections from Maguva Ethnics.",
+  alternates: { canonical: "/collections" },
 };
 
 const occasions = [
