@@ -22,10 +22,14 @@ export default function SiteChrome({ children }) {
 
   return (
     <>
-      <AnnouncementBar />
-      <Header />
-      <main className="flex-1">{children}</main>
-      <Footer />
+      <div className="site-chrome-animate">
+        <AnnouncementBar />
+        <Header />
+      </div>
+      <main className="site-chrome-animate flex-1">{children}</main>
+      <div className="site-chrome-animate">
+        <Footer />
+      </div>
     </>
   );
 }

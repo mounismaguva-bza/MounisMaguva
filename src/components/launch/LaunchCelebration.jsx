@@ -3,12 +3,13 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { LAUNCH_REDIRECT_DELAY_MS } from "@/lib/launch";
+import { LAUNCH_EXIT_DURATION_MS, LAUNCH_REDIRECT_DELAY_MS, LAUNCH_TRANSITION_KEY } from "@/lib/launch";
 import { heroImages } from "@/lib/hero-images";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import ConfettiBurst from "./ConfettiBurst";
 import LaunchGoldDust from "./LaunchGoldDust";
+import LaunchTransitionEmblem from "./LaunchTransitionEmblem";
 
 function pad(value) {
   return String(Math.max(0, value)).padStart(2, "0");
@@ -72,7 +73,7 @@ function BrandLogo({ celebrating }) {
     >
       <div className="relative">
         <div className="launch-logo-halo" aria-hidden />
-        {celebrating && <div className="launch-logo-burst" aria-hidden />}
+        {celebrating && <div className="launch-logo-burst launch-logo-burst-subtle" aria-hidden />}
 
         <div className="launch-logo-emblem relative z-[1] mx-auto">
           <Image
@@ -116,9 +117,15 @@ export default function LaunchCelebration({ countdownSeconds }) {
   const isCelebrating = phase === "celebration";
 
   const goHome = useCallback(() => {
+    if (exiting) return;
     setExiting(true);
-    window.setTimeout(() => router.push("/"), 800);
-  }, [router]);
+    try {
+      sessionStorage.setItem(LAUNCH_TRANSITION_KEY, String(Date.now()));
+    } catch {
+      /* ignore */
+    }
+    window.setTimeout(() => router.push("/"), LAUNCH_EXIT_DURATION_MS);
+  }, [router, exiting]);
 
   useEffect(() => {
     if (phase !== "countdown") return undefined;
@@ -151,9 +158,9 @@ export default function LaunchCelebration({ countdownSeconds }) {
   return (
     <div
       className={cn(
-        "launch-scene relative min-h-[100dvh] overflow-hidden text-[var(--color-cream)] transition-opacity duration-700",
+        "launch-scene relative min-h-[100dvh] overflow-hidden text-[var(--color-cream)]",
         isCelebrating && "launch-scene-live",
-        exiting && "opacity-0",
+        exiting && "launch-scene-exiting",
       )}
     >
       <div className="absolute inset-0" aria-hidden>
@@ -168,17 +175,29 @@ export default function LaunchCelebration({ countdownSeconds }) {
               sizes="100vw"
             />
             <div className="launch-backdrop-overlay absolute inset-0" />
-            <div className="launch-backdrop-shimmer absolute inset-0" />
           </>
         ) : (
           <div className="launch-countdown-bg absolute inset-0" />
         )}
       </div>
 
-      <LaunchGoldDust active intensity={isCelebrating ? 1.6 : 1} />
-      <ConfettiBurst active={isCelebrating && curtainDone} />
+      <LaunchGoldDust active={!exiting} intensity={1} />
+      <ConfettiBurst active={isCelebrating && curtainDone && !exiting} />
 
-      {isCelebrating && !curtainDone && (
+      {exiting && (
+        <>
+          <div className="absolute inset-0 z-[45] flex items-center justify-center px-6">
+            <LaunchTransitionEmblem
+              className="launch-exit-emblem"
+              subtitle="See you inside"
+            />
+          </div>
+          <div className="launch-curtain launch-curtain-left launch-curtain-close-left" aria-hidden />
+          <div className="launch-curtain launch-curtain-right launch-curtain-close-right" aria-hidden />
+        </>
+      )}
+
+      {isCelebrating && !curtainDone && !exiting && (
         <>
           <div className="launch-curtain launch-curtain-left" aria-hidden />
           <div className="launch-curtain launch-curtain-right" aria-hidden />
@@ -193,7 +212,8 @@ export default function LaunchCelebration({ countdownSeconds }) {
       >
         <div
           className={cn(
-            "flex w-full max-w-2xl flex-col items-center text-center transition-all duration-700",
+            "launch-scene-content flex w-full max-w-2xl flex-col items-center text-center transition-all duration-700",
+            exiting && "launch-scene-content-exit",
             isCelebrating && curtainDone
               ? "scale-100 opacity-100"
               : isCelebrating

@@ -153,7 +153,7 @@ export default function Hero() {
   );
 
   return (
-    <section className="bg-[var(--color-cream)]">
+    <section className="hero-launch-reveal bg-[var(--color-cream)]">
       <div className="relative w-full">
         <div
           ref={emblaRef}
