@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { compressImageForUpload } from "@/lib/compress-image";
-import { uploadImageViaCloudinary } from "@/lib/cloudinary-client";
+import { prepareAndUploadImage } from "@/lib/cloudinary-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
 import { sanitizeColorImages } from "@/lib/sanitize-color-images";
@@ -67,12 +67,12 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
       }
 
       const uploads = await Promise.all(
-        toUpload.map(async (file) => {
-          const prepared = await compressImageForUpload(file);
-          return uploadImageViaCloudinary(prepared, {
+        toUpload.map((file) =>
+          prepareAndUploadImage(file, {
             folder: "mounis-maguva/products",
-          });
-        }),
+            prepare: compressImageForUpload,
+          }),
+        ),
       );
 
       for (const result of uploads) {
@@ -101,11 +101,6 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
   return (
     <fieldset className="space-y-4">
       <legend className="text-sm font-medium">Images per color</legend>
-      <p className="text-xs text-[var(--color-muted)]">
-        Upload or paste images (Ctrl+V). Up to {MAX_IMAGES_PER_COLOR} photos per color.
-        Files over 5MB are auto-compressed (resize only, no crop) before upload.
-        The site serves fast high-quality WebP copies; your full image is always shown.
-      </p>
 
       {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
 

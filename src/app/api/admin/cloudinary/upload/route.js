@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { requireAdminApi, jsonError } from "@/lib/admin-api";
+import { IMAGE_UPLOAD_TARGET_BYTES } from "@/lib/compress-image";
 
-const MAX_BYTES = 512 * 1024;
+/** Small buffer above client compress target for edge cases. */
+const MAX_BYTES = IMAGE_UPLOAD_TARGET_BYTES + 512 * 1024;
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -29,7 +31,11 @@ export async function POST(request) {
     }
 
     if (file.size > MAX_BYTES) {
-      return NextResponse.json({ error: "Image must be 10MB or smaller" }, { status: 400 });
+      const maxMb = Math.round(IMAGE_UPLOAD_TARGET_BYTES / (1024 * 1024));
+      return NextResponse.json(
+        { error: `Image must be ${maxMb}MB or smaller. Large files are auto-compressed before upload — try again or use a smaller photo.` },
+        { status: 400 },
+      );
     }
 
     const bytes = Buffer.from(await file.arrayBuffer());

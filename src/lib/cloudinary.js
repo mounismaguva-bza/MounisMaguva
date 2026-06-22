@@ -2,6 +2,8 @@ import "server-only";
 
 import { v2 as cloudinary } from "cloudinary";
 
+let configured = false;
+
 function getCloudinary() {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
@@ -13,14 +15,47 @@ function getCloudinary() {
     );
   }
 
-  cloudinary.config({
-    cloud_name: cloudName,
-    api_key: apiKey,
-    api_secret: apiSecret,
-    secure: true,
-  });
+  if (!configured) {
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+      secure: true,
+    });
+    configured = true;
+  }
 
   return cloudinary;
+}
+
+const ALLOWED_UPLOAD_FOLDER_PREFIX = "mounis-maguva";
+
+export function assertAllowedUploadFolder(folder) {
+  const value = String(folder || "").trim();
+  if (!value.startsWith(ALLOWED_UPLOAD_FOLDER_PREFIX)) {
+    throw new Error("Invalid upload folder");
+  }
+  return value;
+}
+
+/** Signed params for direct browser → Cloudinary upload (skips server file proxy). */
+export function createCloudinaryUploadSignature(folder) {
+  const cld = getCloudinary();
+  const safeFolder = assertAllowedUploadFolder(folder);
+  const timestamp = Math.round(Date.now() / 1000);
+  const paramsToSign = { timestamp, folder: safeFolder };
+  const signature = cld.utils.api_sign_request(
+    paramsToSign,
+    process.env.CLOUDINARY_API_SECRET,
+  );
+
+  return {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    timestamp,
+    signature,
+    folder: safeFolder,
+  };
 }
 
 /**

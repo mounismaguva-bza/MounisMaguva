@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { compressImageForUpload } from "@/lib/compress-image";
-import { uploadImageViaCloudinary } from "@/lib/cloudinary-client";
+import { prepareAndUploadImage } from "@/lib/cloudinary-client";
 import { MAX_HERO_SLIDES } from "@/lib/constants";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 
@@ -68,9 +68,9 @@ export default function HeroSlidesEditor() {
     setUploading(true);
     setError("");
     try {
-      const compressed = await compressImageForUpload(file);
-      const result = await uploadImageViaCloudinary(compressed, {
+      const result = await prepareAndUploadImage(file, {
         folder: "mounis-maguva/hero",
+        prepare: compressImageForUpload,
       });
       const url = normalizeProductImageSrc(result.url, null);
       if (url) {
