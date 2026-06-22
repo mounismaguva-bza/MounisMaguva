@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatDiscount, formatPrice } from "@/lib/format";
-import { getProductCardImages, getProductThumbnail } from "@/lib/product-images";
+import { getProductCardImages, getProductThumbnail, hasProductImages } from "@/lib/product-images";
 import { Badge } from "@/components/ui/badge";
 import HotBadge from "@/components/product/HotBadge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export default function ProductCard({ product }) {
     () => getProductCardImages(product),
     [product],
   );
+  const hasImages = hasProductImages(product);
   const thumbnail = primary || getProductThumbnail(product);
 
   function handleAddToCart(e) {
@@ -56,14 +57,15 @@ export default function ProductCard({ product }) {
             alt={product.name}
             fill
             className={cn(
-              "object-cover transition-all duration-500",
+              "transition-all duration-500",
+              hasImages ? "object-cover" : "object-contain p-8",
               hover
                 ? "opacity-100 group-hover/card:opacity-0 group-hover/card:scale-105"
                 : "group-hover/card:scale-105",
             )}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
-          {hover && (
+          {hasImages && hover && (
             <ProductImage
               src={hover}
               alt={`${product.name} — alternate view`}

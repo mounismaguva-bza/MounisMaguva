@@ -1,6 +1,7 @@
 import {
   isCloudinaryUrl,
   normalizeProductImageSrc,
+  PRODUCT_IMAGE_FALLBACK,
   toCloudinaryDeliveryUrl,
 } from "@/lib/product-images";
 import {
@@ -12,9 +13,14 @@ const WARMED_IMAGES_KEY = "mm:warmed-images";
 const MAX_WARMED_IMAGES = 400;
 
 /** Stable Cloudinary delivery URL for display and caching. */
-export function getDisplayImageSrc(src, fallback = "") {
-  const normalized = normalizeProductImageSrc(src, fallback || null);
-  if (!normalized) return fallback;
+export function getDisplayImageSrc(src, fallback) {
+  const resolvedFallback =
+    fallback === undefined ? PRODUCT_IMAGE_FALLBACK : fallback;
+  const normalized = normalizeProductImageSrc(
+    src,
+    resolvedFallback || null,
+  );
+  if (!normalized) return resolvedFallback || "";
   if (isCloudinaryUrl(normalized)) {
     return toCloudinaryDeliveryUrl(normalized);
   }

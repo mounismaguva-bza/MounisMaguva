@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AdminTableActions, ProductStockBadge } from "@/components/admin/OrderManageUI";
 import { formatPrice } from "@/lib/format";
-import { getProductThumbnail } from "@/lib/product-images";
+import { getProductThumbnail, hasProductImages } from "@/lib/product-images";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -110,6 +110,7 @@ export default function AdminProductsPage() {
               <tbody>
                 {filtered.map((product) => {
                   const thumb = getProductThumbnail(product);
+                  const hasImages = hasProductImages(product);
                   return (
                     <tr
                       key={product.id}
@@ -122,7 +123,7 @@ export default function AdminProductsPage() {
                               src={thumb}
                               alt={product.name || "Product"}
                               fill
-                              className="object-cover"
+                              className={hasImages ? "object-cover" : "object-contain p-2"}
                               sizes="56px"
                             />
                           </div>

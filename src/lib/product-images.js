@@ -1,5 +1,5 @@
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
-import { maguvaImage } from "@/lib/images";
+import { brandLogo } from "@/lib/images";
 import { site } from "@/lib/site";
 
 /**
@@ -7,7 +7,8 @@ import { site } from "@/lib/site";
  * @typedef {Record<string, string[]>} ColorImagesMap
  */
 
-const FALLBACK_THUMBNAIL = maguvaImage(1);
+export const PRODUCT_IMAGE_FALLBACK = brandLogo;
+const FALLBACK_THUMBNAIL = PRODUCT_IMAGE_FALLBACK;
 
 function cleanImageUrl(value) {
   if (value == null) return "";
@@ -207,7 +208,17 @@ export function getProductThumbnail(product) {
     const normalized = normalizeProductImageSrc(image, null);
     if (normalized) return normalized;
   }
-  return normalizeProductImageSrc(FALLBACK_THUMBNAIL);
+  return normalizeProductImageSrc(PRODUCT_IMAGE_FALLBACK);
+}
+
+export function hasProductImages(product) {
+  return getAllProductImages(product).length > 0;
+}
+
+export function isProductImageFallback(src) {
+  const normalized = normalizeProductImageSrc(src, null);
+  if (!normalized) return true;
+  return normalized === normalizeProductImageSrc(PRODUCT_IMAGE_FALLBACK);
 }
 
 /** Primary + next image for listing hover swap */

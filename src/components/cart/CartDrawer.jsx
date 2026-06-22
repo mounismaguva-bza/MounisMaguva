@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/format";
+import { isProductImageFallback } from "@/lib/product-images";
 import { copyProductImagesForWhatsApp } from "@/lib/whatsapp-images";
 import { getWhatsAppOrderUrl, buildWhatsAppOrderMessage } from "@/lib/whatsapp";
 import { IconMinus, IconPlus, IconWhatsApp } from "@/components/icons";
@@ -231,7 +232,11 @@ export default function CartDrawer() {
                             src={item.image}
                             alt={item.name}
                             fill
-                            className="object-cover"
+                            className={
+                              isProductImageFallback(item.image)
+                                ? "object-contain p-1.5"
+                                : "object-cover"
+                            }
                             sizes="64px"
                           />
                         </Link>

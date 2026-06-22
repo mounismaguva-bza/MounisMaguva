@@ -13,7 +13,7 @@ export default function ProductImage({
   src,
   alt,
   className,
-  fallback = "",
+  fallback,
   ...props
 }) {
   const displaySrc = useMemo(

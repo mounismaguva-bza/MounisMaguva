@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import {
   LAUNCH_HOME_REVEAL_MS,
   LAUNCH_TRANSITION_KEY,
@@ -32,7 +32,7 @@ export default function LaunchHomeEntrance() {
 
     handledRef.current = true;
     document.documentElement.classList.add("home-from-launch");
-    setActive(true);
+    startTransition(() => setActive(true));
 
     const timer = window.setTimeout(() => {
       setActive(false);

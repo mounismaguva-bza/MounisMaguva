@@ -39,6 +39,7 @@ export default function ProductImageGallery({
   onSelectIndex,
   onShare,
   shareFeedback,
+  imageFit = "cover",
 }) {
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -224,6 +225,11 @@ export default function ProductImageGallery({
     mainApi.scrollNext();
   }
 
+  const thumbImageClass =
+    imageFit === "contain" ? "object-contain p-2" : "object-cover";
+  const mainImageClass =
+    imageFit === "contain" ? "object-contain p-10 sm:p-12" : "object-cover";
+
   const thumbButtonClass = (i) =>
     cn(
       "relative shrink-0 overflow-hidden p-0 transition-all",
@@ -252,7 +258,7 @@ export default function ProductImageGallery({
                 }}
                 className={thumbButtonClass(i)}
               >
-                <ProductImage src={img} alt="" fill className="object-cover" sizes="72px" />
+                <ProductImage src={img} alt="" fill className={thumbImageClass} sizes="72px" />
               </Button>
             ))}
           </div>
@@ -305,6 +311,7 @@ export default function ProductImageGallery({
                       priority={i === 0}
                       sizes="(max-width: 768px) 100vw, (max-width: 1280px) 48vw, 620px"
                       className="absolute inset-0"
+                      imageClassName={mainImageClass}
                       onOpenFullscreen={(origin) => openFullscreen(i, origin)}
                     >
                       {i === selectedIndex && (isBestSeller || isNew) && (
@@ -400,7 +407,7 @@ export default function ProductImageGallery({
                 }}
                 className={thumbButtonClass(i)}
               >
-                <ProductImage src={img} alt="" fill className="object-cover" sizes="64px" />
+                <ProductImage src={img} alt="" fill className={thumbImageClass} sizes="64px" />
               </Button>
             ))}
           </div>

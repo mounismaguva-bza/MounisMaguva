@@ -1,6 +1,9 @@
 /** Base path for assets in public/Maguva Images (encoded for next/image) */
 const MAGUVA_DIR = "/Maguva%20Images";
 
+/** Store logo used when a product has no uploaded image */
+export const brandLogo = "/Mounis Logo.png";
+
 /**
  * Local Maguva product & marketing image (image1.jpg … image27.jpg, image15.png).
  * @param {number} index 1–27
