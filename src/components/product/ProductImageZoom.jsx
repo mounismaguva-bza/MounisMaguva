@@ -19,7 +19,8 @@ export default function ProductImageZoom({
   src,
   alt,
   className,
-  imageClassName = "object-cover",
+  imageClassName = "object-contain",
+  displaySize = "full",
   priority,
   sizes,
   onOpenFullscreen,
@@ -115,6 +116,8 @@ export default function ProductImageZoom({
           src={src}
           alt={alt}
           fill
+          displaySize={displaySize}
+          quality={100}
           className={imageClassName}
           priority={priority}
           sizes={sizes}

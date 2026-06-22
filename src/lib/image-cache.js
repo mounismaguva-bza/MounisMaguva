@@ -13,7 +13,7 @@ const WARMED_IMAGES_KEY = "mm:warmed-images";
 const MAX_WARMED_IMAGES = 400;
 
 /** Stable Cloudinary delivery URL for display and caching. */
-export function getDisplayImageSrc(src, fallback) {
+export function getDisplayImageSrc(src, fallback, variant = "full") {
   const resolvedFallback =
     fallback === undefined ? PRODUCT_IMAGE_FALLBACK : fallback;
   const normalized = normalizeProductImageSrc(
@@ -22,13 +22,13 @@ export function getDisplayImageSrc(src, fallback) {
   );
   if (!normalized) return resolvedFallback || "";
   if (isCloudinaryUrl(normalized)) {
-    return toCloudinaryDeliveryUrl(normalized);
+    return toCloudinaryDeliveryUrl(normalized, variant);
   }
   return normalized;
 }
 
-export function shouldBypassNextImageOptimizer(src) {
-  return isCloudinaryUrl(getDisplayImageSrc(src, ""));
+export function shouldBypassNextImageOptimizer(src, variant = "full") {
+  return isCloudinaryUrl(getDisplayImageSrc(src, "", variant));
 }
 
 function getWarmedImages() {

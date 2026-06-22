@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { compressImageForUpload, IMAGE_UPLOAD_TARGET_BYTES } from "@/lib/compress-image";
+import { compressImageForUpload } from "@/lib/compress-image";
 import { uploadImageViaCloudinary } from "@/lib/cloudinary-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
@@ -66,12 +66,17 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
         );
       }
 
-      for (const file of toUpload) {
+      const uploads = await Promise.all(
+        toUpload.map(async (file) => {
+          const prepared = await compressImageForUpload(file);
+          return uploadImageViaCloudinary(prepared, {
+            folder: "mounis-maguva/products",
+          });
+        }),
+      );
+
+      for (const result of uploads) {
         if (merged.length >= MAX_IMAGES_PER_COLOR) break;
-        const compressed = await compressImageForUpload(file);
-        const result = await uploadImageViaCloudinary(compressed, {
-          folder: "mounis-maguva/products",
-        });
         const normalized = normalizeProductImageSrc(result.url, null);
         if (normalized && !merged.includes(normalized)) {
           merged.push(normalized);
@@ -97,9 +102,9 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
     <fieldset className="space-y-4">
       <legend className="text-sm font-medium">Images per color</legend>
       <p className="text-xs text-[var(--color-muted)]">
-        Upload or paste images (Ctrl+V). Up to {MAX_IMAGES_PER_COLOR} photos per color. Each image
-        is optimized to about {Math.round(IMAGE_UPLOAD_TARGET_BYTES / 1024)}KB at high quality,
-        then stored on Cloudinary.
+        Upload or paste images (Ctrl+V). Up to {MAX_IMAGES_PER_COLOR} photos per color.
+        Your original photo is stored safely; the site auto-serves smaller high-quality
+        copies for fast loading. No cropping — the full image is always shown.
       </p>
 
       {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
@@ -139,7 +144,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
                         src={item.safe}
                         alt={`${color} ${index + 1}`}
                         fill
-                        className="object-cover"
+                        className="object-contain p-2"
                         sizes="120px"
                       />
                     </div>

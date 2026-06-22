@@ -56,12 +56,13 @@ export default function ProductCard({ product }) {
             src={primary}
             alt={product.name}
             fill
+            displaySize="card"
             className={cn(
-              "transition-all duration-500",
-              hasImages ? "object-cover" : "object-contain p-8",
+              "object-contain transition-all duration-500",
+              hasImages ? "p-3" : "p-8",
               hover
-                ? "opacity-100 group-hover/card:opacity-0 group-hover/card:scale-105"
-                : "group-hover/card:scale-105",
+                ? "opacity-100 group-hover/card:opacity-0"
+                : "",
             )}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
@@ -70,7 +71,8 @@ export default function ProductCard({ product }) {
               src={hover}
               alt={`${product.name} — alternate view`}
               fill
-              className="object-cover opacity-0 transition-all duration-500 group-hover/card:scale-105 group-hover/card:opacity-100"
+              displaySize="card"
+              className="object-contain p-3 opacity-0 transition-all duration-500 group-hover/card:opacity-100"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           )}

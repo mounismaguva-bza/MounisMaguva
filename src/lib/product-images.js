@@ -79,7 +79,38 @@ export function resolveAbsoluteProductImageUrl(src, origin) {
 }
 
 const CLOUDINARY_UPLOAD = "/image/upload/";
-const CLOUDINARY_DELIVERY_TRANSFORMS = "f_auto,q_auto:good,w_1200,c_limit";
+
+/**
+ * Hybrid delivery variants.
+ * - Original master stays untouched on Cloudinary.
+ * - Each screen gets a right-sized, high-quality WebP copy.
+ * - `c_limit` only scales down (never crops), so the full image is always shown.
+ * @type {Record<string, string>}
+ */
+const CLOUDINARY_VARIANTS = {
+  thumb: "f_webp,q_80,w_160,c_limit",
+  card: "f_webp,q_88,w_900,c_limit",
+  full: "f_webp,q_92,w_2000,c_limit",
+  zoom: "f_webp,q_95,w_2600,c_limit",
+};
+
+function isCloudinaryTransformSegment(segment) {
+  if (!segment || /^v\d+$/.test(segment)) return false;
+  return segment.includes("_") || segment.includes(":") || segment.includes(",");
+}
+
+/** Strip existing delivery transforms so we can apply the right size variant. */
+function getCloudinaryAssetPath(url) {
+  const markerIndex = url.indexOf(CLOUDINARY_UPLOAD);
+  if (markerIndex === -1) return null;
+
+  const segments = url.slice(markerIndex + CLOUDINARY_UPLOAD.length).split("/");
+  while (segments.length && isCloudinaryTransformSegment(segments[0])) {
+    segments.shift();
+  }
+
+  return segments.length ? segments.join("/") : null;
+}
 
 /** @param {string} url */
 export function isCloudinaryUrl(url) {
@@ -94,24 +125,24 @@ export function isCloudinaryUrl(url) {
 /**
  * Optimized Cloudinary delivery URL (not the raw upload/source link).
  * @param {string} url
+ * @param {"thumb" | "card" | "full" | "zoom" | "original"} [variant]
  */
-export function toCloudinaryDeliveryUrl(url) {
+export function toCloudinaryDeliveryUrl(url, variant = "full") {
   if (!url || !isCloudinaryUrl(url)) return url;
 
+  const assetPath = getCloudinaryAssetPath(url);
+  if (!assetPath) return url;
+
   const markerIndex = url.indexOf(CLOUDINARY_UPLOAD);
-  if (markerIndex === -1) return url;
-
   const before = url.slice(0, markerIndex + CLOUDINARY_UPLOAD.length);
-  const after = url.slice(markerIndex + CLOUDINARY_UPLOAD.length);
 
-  if (
-    after.startsWith(`${CLOUDINARY_DELIVERY_TRANSFORMS}/`) ||
-    after.includes("f_auto")
-  ) {
-    return url;
+  // Untouched original master (no delivery transforms).
+  if (variant === "original") {
+    return `${before}${assetPath}`;
   }
 
-  return `${before}${CLOUDINARY_DELIVERY_TRANSFORMS}/${after}`;
+  const transforms = CLOUDINARY_VARIANTS[variant] || CLOUDINARY_VARIANTS.full;
+  return `${before}${transforms}/${assetPath}`;
 }
 
 /** @param {string} slug @param {string} [origin] */

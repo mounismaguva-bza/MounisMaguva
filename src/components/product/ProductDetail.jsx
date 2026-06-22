@@ -26,7 +26,7 @@ import { Label } from "@/components/ui/label";
 import ProductDetailsSection from "@/components/product/ProductDetailsSection";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
 import ProductCard from "@/components/product/ProductCard";
-import { getImagesForColor, getProductThumbnail, hasProductImages, isProductImageFallback } from "@/lib/product-images";
+import { getImagesForColor, getProductThumbnail } from "@/lib/product-images";
 import { shareProduct } from "@/lib/share-product";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +51,6 @@ export default function ProductDetail({ product, related = [] }) {
     () => getImagesForColor(product, selectedColor?.label),
     [product, selectedColor?.label],
   );
-  const hasUploadedImages = hasProductImages(product);
 
   const colorSamples = useMemo(
     () =>
@@ -212,7 +211,6 @@ export default function ProductDetail({ product, related = [] }) {
             onSelectIndex={setSelectedImage}
             onShare={handleShareProduct}
             shareFeedback={shareStatus}
-            imageFit={hasUploadedImages ? "cover" : "contain"}
           />
         </div>
 
@@ -275,7 +273,6 @@ export default function ProductDetail({ product, related = [] }) {
               <div className="flex flex-wrap gap-2 sm:gap-2.5">
                 {colorSamples.map((opt) => {
                   const isSelected = selectedColorId === opt.id;
-                  const usesLogo = isProductImageFallback(opt.sampleImage);
                   return (
                     <button
                       key={opt.id}
@@ -297,7 +294,8 @@ export default function ProductDetail({ product, related = [] }) {
                           src={opt.sampleImage}
                           alt={`${product.name} — ${opt.label}`}
                           fill
-                          className={usesLogo ? "object-contain p-2" : "object-cover"}
+                          displaySize="thumb"
+                          className="object-contain p-2"
                           sizes="(max-width: 639px) 88px, (max-width: 1023px) 100px, 112px"
                         />
                         {!opt.available && (

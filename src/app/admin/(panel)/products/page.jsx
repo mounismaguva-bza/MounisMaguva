@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AdminTableActions, ProductStockBadge } from "@/components/admin/OrderManageUI";
 import { formatPrice } from "@/lib/format";
-import { getProductThumbnail, hasProductImages } from "@/lib/product-images";
+import { getDisplayImageSrc } from "@/lib/image-cache";
+import { getProductThumbnail } from "@/lib/product-images";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -14,21 +14,41 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  async function fetchProducts() {
+    const response = await fetch("/api/admin/products", { cache: "no-store" });
+    return response.json();
+  }
+
   async function loadProducts() {
     setLoading(true);
-    const response = await fetch("/api/admin/products", { cache: "no-store" });
-    const data = await response.json();
-    setProducts(data.products || []);
-    setMaxProducts(data.maxProducts ?? 30);
-    setCanAdd(data.canAdd !== false);
-    setLoading(false);
+    try {
+      const data = await fetchProducts();
+      setProducts(data.products || []);
+      setMaxProducts(data.maxProducts ?? 30);
+      setCanAdd(data.canAdd !== false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadProducts();
-    }, 0);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await fetchProducts();
+        if (cancelled) return;
+        setProducts(data.products || []);
+        setMaxProducts(data.maxProducts ?? 30);
+        setCanAdd(data.canAdd !== false);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -109,8 +129,11 @@ export default function AdminProductsPage() {
               </thead>
               <tbody>
                 {filtered.map((product) => {
-                  const thumb = getProductThumbnail(product);
-                  const hasImages = hasProductImages(product);
+                  const thumb = getDisplayImageSrc(
+                    getProductThumbnail(product),
+                    undefined,
+                    "thumb",
+                  );
                   return (
                     <tr
                       key={product.id}
@@ -119,12 +142,13 @@ export default function AdminProductsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-[var(--color-surface)]">
-                            <Image
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
                               src={thumb}
                               alt={product.name || "Product"}
-                              fill
-                              className={hasImages ? "object-cover" : "object-contain p-2"}
-                              sizes="56px"
+                              loading="lazy"
+                              decoding="async"
+                              className="absolute inset-0 h-full w-full object-contain p-2"
                             />
                           </div>
                           <div className="min-w-0">

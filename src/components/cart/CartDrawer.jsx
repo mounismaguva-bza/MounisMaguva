@@ -235,7 +235,7 @@ export default function CartDrawer() {
                             className={
                               isProductImageFallback(item.image)
                                 ? "object-contain p-1.5"
-                                : "object-cover"
+                                : "object-contain p-1"
                             }
                             sizes="64px"
                           />

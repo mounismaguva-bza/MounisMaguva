@@ -14,15 +14,17 @@ export default function ProductImage({
   alt,
   className,
   fallback,
+  displaySize = "full",
+  quality = 100,
   ...props
 }) {
   const displaySrc = useMemo(
-    () => getDisplayImageSrc(src, fallback),
-    [src, fallback],
+    () => getDisplayImageSrc(src, fallback, displaySize),
+    [src, fallback, displaySize],
   );
   const unoptimized = useMemo(
-    () => shouldBypassNextImageOptimizer(displaySrc),
-    [displaySrc],
+    () => shouldBypassNextImageOptimizer(src, displaySize),
+    [src, displaySize],
   );
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function ProductImage({
       src={displaySrc}
       alt={alt}
       unoptimized={unoptimized}
+      quality={quality}
       className={cn(className)}
       {...props}
     />

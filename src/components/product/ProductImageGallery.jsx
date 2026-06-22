@@ -39,7 +39,6 @@ export default function ProductImageGallery({
   onSelectIndex,
   onShare,
   shareFeedback,
-  imageFit = "cover",
 }) {
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -225,10 +224,8 @@ export default function ProductImageGallery({
     mainApi.scrollNext();
   }
 
-  const thumbImageClass =
-    imageFit === "contain" ? "object-contain p-2" : "object-cover";
-  const mainImageClass =
-    imageFit === "contain" ? "object-contain p-10 sm:p-12" : "object-cover";
+  const thumbImageClass = "object-contain p-1";
+  const mainImageClass = "object-contain p-4 sm:p-6";
 
   const thumbButtonClass = (i) =>
     cn(
@@ -258,7 +255,7 @@ export default function ProductImageGallery({
                 }}
                 className={thumbButtonClass(i)}
               >
-                <ProductImage src={img} alt="" fill className={thumbImageClass} sizes="72px" />
+                <ProductImage src={img} alt="" fill displaySize="thumb" className={thumbImageClass} sizes="72px" />
               </Button>
             ))}
           </div>
@@ -309,6 +306,7 @@ export default function ProductImageGallery({
                       src={src}
                       alt={`${alt} — view ${i + 1}`}
                       priority={i === 0}
+                      displaySize="full"
                       sizes="(max-width: 768px) 100vw, (max-width: 1280px) 48vw, 620px"
                       className="absolute inset-0"
                       imageClassName={mainImageClass}
@@ -407,7 +405,7 @@ export default function ProductImageGallery({
                 }}
                 className={thumbButtonClass(i)}
               >
-                <ProductImage src={img} alt="" fill className={thumbImageClass} sizes="64px" />
+                <ProductImage src={img} alt="" fill displaySize="thumb" className={thumbImageClass} sizes="64px" />
               </Button>
             ))}
           </div>
@@ -503,7 +501,7 @@ export default function ProductImageGallery({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={getDisplayImageSrc(src)}
+                      src={getDisplayImageSrc(src, undefined, "zoom")}
                       alt={`${alt} — fullscreen ${i + 1}`}
                       className="max-h-[85vh] max-w-full object-contain select-none"
                       draggable={false}
