@@ -103,8 +103,8 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
       <legend className="text-sm font-medium">Images per color</legend>
       <p className="text-xs text-[var(--color-muted)]">
         Upload or paste images (Ctrl+V). Up to {MAX_IMAGES_PER_COLOR} photos per color.
-        Your original photo is stored safely; the site auto-serves smaller high-quality
-        copies for fast loading. No cropping — the full image is always shown.
+        Files over 5MB are auto-compressed (resize only, no crop) before upload.
+        The site serves fast high-quality WebP copies; your full image is always shown.
       </p>
 
       {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
