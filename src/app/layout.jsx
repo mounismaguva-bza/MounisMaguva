@@ -2,12 +2,7 @@ import { Cormorant_Garamond, DM_Sans, Dancing_Script } from "next/font/google";
 import SiteChrome from "@/components/layout/SiteChrome";
 import JsonLd from "@/components/seo/JsonLd";
 import Providers from "@/components/Providers";
-import {
-  localBusinessJsonLd,
-  organizationJsonLd,
-  rootMetadata,
-  websiteJsonLd,
-} from "@/lib/seo";
+import { brandJsonLdGraph, rootMetadata } from "@/lib/seo";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -34,9 +29,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable} ${script.variable}`}>
       <body className="min-h-screen flex flex-col antialiased">
-        <JsonLd data={organizationJsonLd()} />
-        <JsonLd data={localBusinessJsonLd()} />
-        <JsonLd data={websiteJsonLd()} />
+        <JsonLd data={brandJsonLdGraph()} />
         <Providers>
           <SiteChrome>{children}</SiteChrome>
         </Providers>

@@ -9,6 +9,11 @@ export const metadata = {
   title: "Instagram",
   description: `Latest posts and looks from ${site.name} on Instagram.`,
   alternates: { canonical: "/instagram" },
+  robots: {
+    index: false,
+    follow: true,
+    googleBot: { index: false, follow: true },
+  },
 };
 
 export default async function InstagramPage() {

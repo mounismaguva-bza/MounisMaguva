@@ -6,12 +6,21 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.mounis
   "",
 );
 
+const ORG_ID = `${SITE_URL}/#organization`;
+const WEBSITE_ID = `${SITE_URL}/#website`;
+const STORE_ID = `${SITE_URL}/#store`;
+const HOME_PAGE_ID = `${SITE_URL}/#webpage`;
+
 export const BRAND_KEYWORDS = [
   "Mouni's Maguva",
   "Mounis Maguva",
   "Mounis MAGUVA",
   "MAGUVA",
+  "Maguva Ethnics",
+  "maguva_ethinics",
+  "Mounis Maguva official website",
   "Mounis Maguva Vijayawada",
+  "Mounis Maguva online store",
   "ethnic wear Vijayawada",
   "sarees online India",
   "kurtis online",
@@ -24,15 +33,26 @@ export function absoluteUrl(path = "/") {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-export function organizationJsonLd() {
+function organizationNode() {
   return {
-    "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": `${SITE_URL}/#organization`,
+    "@id": ORG_ID,
     name: site.name,
-    alternateName: ["Mounis Maguva", "MAGUVA", "Mouni's MAGUVA"],
+    alternateName: [
+      "Mounis Maguva",
+      "MAGUVA",
+      "Mouni's MAGUVA",
+      "Maguva Ethnics",
+      "maguva_ethinics",
+      "@maguva_ethinics",
+    ],
     url: SITE_URL,
-    logo: absoluteUrl("/icon.png"),
+    logo: {
+      "@type": "ImageObject",
+      url: absoluteUrl("/icon.png"),
+      width: 512,
+      height: 512,
+    },
     image: absoluteUrl("/og-image.png"),
     description: site.description,
     email: site.email,
@@ -41,25 +61,33 @@ export function organizationJsonLd() {
   };
 }
 
-export function localBusinessJsonLd() {
+function localBusinessNode() {
   return {
-    "@context": "https://schema.org",
     "@type": "ClothingStore",
-    "@id": `${SITE_URL}/#store`,
+    "@id": STORE_ID,
     name: site.name,
-    alternateName: ["Mounis Maguva", "MAGUVA"],
+    alternateName: ["Mounis Maguva", "MAGUVA", "Maguva Ethnics"],
     url: SITE_URL,
     image: absoluteUrl("/og-image.png"),
     description: site.description,
     telephone: site.phone,
     email: site.email,
+    parentOrganization: { "@id": ORG_ID },
     address: {
       "@type": "PostalAddress",
       streetAddress: "Benz Circle, beside Raj Darbar Restaurant",
       addressLocality: "Vijayawada",
       addressRegion: "Andhra Pradesh",
+      postalCode: "520010",
       addressCountry: "IN",
     },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 16.498421621224598,
+      longitude: 80.65161887715695,
+    },
+    hasMap:
+      "https://www.google.com/maps/place/Mounis+Maguva/@16.4984216,80.6516189,17z",
     priceRange: "₹₹",
     currenciesAccepted: "INR",
     paymentAccepted: "Cash, UPI, Bank Transfer",
@@ -67,30 +95,75 @@ export function localBusinessJsonLd() {
       "@type": "Country",
       name: "India",
     },
+    sameAs: [site.instagram],
   };
 }
 
-export function websiteJsonLd() {
+function websiteNode() {
   return {
-    "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `${SITE_URL}/#website`,
+    "@id": WEBSITE_ID,
     name: site.name,
-    alternateName: ["Mounis Maguva", "MAGUVA"],
+    alternateName: ["Mounis Maguva", "MAGUVA", "Mounis Maguva Official Website"],
     url: SITE_URL,
     description: site.description,
-    publisher: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": ORG_ID },
+    copyrightHolder: { "@id": ORG_ID },
     inLanguage: "en-IN",
   };
 }
 
+function homeWebPageNode() {
+  return {
+    "@type": "WebPage",
+    "@id": HOME_PAGE_ID,
+    url: absoluteUrl("/"),
+    name: `${site.name} — Official Online Store`,
+    description: site.description,
+    isPartOf: { "@id": WEBSITE_ID },
+    about: { "@id": ORG_ID },
+    mainEntity: { "@id": STORE_ID },
+    primaryImageOfPage: absoluteUrl("/og-image.png"),
+    inLanguage: "en-IN",
+  };
+}
+
+/** Unified structured data graph for Google brand / local results */
+export function brandJsonLdGraph({ includeHomePage = false } = {}) {
+  const graph = [organizationNode(), websiteNode(), localBusinessNode()];
+  if (includeHomePage) graph.push(homeWebPageNode());
+  return {
+    "@context": "https://schema.org",
+    "@graph": graph,
+  };
+}
+
+/** @deprecated Use brandJsonLdGraph() — kept for imports that still reference these */
+export function organizationJsonLd() {
+  return { "@context": "https://schema.org", ...organizationNode() };
+}
+
+export function localBusinessJsonLd() {
+  return { "@context": "https://schema.org", ...localBusinessNode() };
+}
+
+export function websiteJsonLd() {
+  return { "@context": "https://schema.org", ...websiteNode() };
+}
+
+export function homeWebPageJsonLd() {
+  return { "@context": "https://schema.org", ...homeWebPageNode() };
+}
+
+const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+
 export const rootMetadata = {
   metadataBase: new URL(`${SITE_URL}/`),
   title: {
-    default: `${site.name} | Mounis Maguva — ${site.tagline}`,
+    default: `${site.name} — Official Website | Mounis Maguva`,
     template: `%s | ${site.name}`,
   },
-  description: site.description,
+  description: `${site.description} Shop at the official Mounis Maguva online store in Vijayawada.`,
   applicationName: site.name,
   keywords: BRAND_KEYWORDS,
   authors: [{ name: site.name, url: SITE_URL }],
@@ -111,12 +184,19 @@ export const rootMetadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  ...(googleVerification
+    ? {
+        verification: {
+          google: googleVerification,
+        },
+      }
+    : {}),
   openGraph: {
     type: "website",
     locale: site.locale,
     url: SITE_URL,
     siteName: site.name,
-    title: `${site.name} | Mounis Maguva`,
+    title: `${site.name} — Official Website | Mounis Maguva`,
     description: site.description,
     images: [
       {
@@ -129,18 +209,18 @@ export const rootMetadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} | Mounis Maguva`,
+    title: `${site.name} — Official Website`,
     description: site.description,
     images: ["/og-image.png"],
   },
 };
 
 export const homeMetadata = {
-  title: `${site.name} | Mounis Maguva — ${site.tagline}`,
-  description: site.description,
+  title: `${site.name} — Official Online Store | Mounis Maguva`,
+  description: `Shop sarees, three-piece sets, dresses and kurtis at the official ${site.name} website. ${site.tagline}. Vijayawada, India.`,
   alternates: { canonical: "/" },
   openGraph: {
-    title: `${site.name} | Mounis Maguva`,
+    title: `${site.name} — Official Online Store`,
     description: site.description,
     url: "/",
   },
@@ -153,7 +233,6 @@ export const STATIC_SITEMAP_ROUTES = [
   { path: "/about", changeFrequency: "monthly", priority: 0.7 },
   { path: "/contact", changeFrequency: "monthly", priority: 0.7 },
   { path: "/track", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/instagram", changeFrequency: "weekly", priority: 0.6 },
   ...categories.map((cat) => ({
     path: `/shop/${cat.slug}`,
     changeFrequency: "daily",

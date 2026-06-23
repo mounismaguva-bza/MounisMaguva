@@ -3,7 +3,8 @@ import CategoryGrid from "@/components/home/CategoryGrid";
 import FeaturedSection from "@/components/home/FeaturedSection";
 import Hero from "@/components/home/Hero";
 import TrustBar from "@/components/home/TrustBar";
-import { homeMetadata } from "@/lib/seo";
+import JsonLd from "@/components/seo/JsonLd";
+import { homeMetadata, homeWebPageJsonLd } from "@/lib/seo";
 import { getBestSellers, getNewArrivals } from "@/lib/products";
 
 export const metadata = homeMetadata;
@@ -22,6 +23,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={homeWebPageJsonLd()} />
       <ProductCacheWarmer products={featuredProducts} />
       <Hero />
       <TrustBar />
