@@ -5,7 +5,7 @@ import { ZoomIn } from "lucide-react";
 import ProductImage from "@/components/product/ProductImage";
 import { cn } from "@/lib/utils";
 
-const ZOOM_LEVEL = 2.35;
+const HOVER_ZOOM = 2.35;
 const LENS_SIZE = 112;
 
 function getOriginFromEvent(container, clientX, clientY) {
@@ -28,11 +28,10 @@ export default function ProductImageZoom({
 }) {
   const containerRef = useRef(null);
   const [hovering, setHovering] = useState(false);
-  const [pinned, setPinned] = useState(false);
   const [origin, setOrigin] = useState({ x: 50, y: 50 });
   const [canHoverZoom, setCanHoverZoom] = useState(false);
 
-  const isZoomed = canHoverZoom && (hovering || pinned);
+  const isHoverZoomed = canHoverZoom && hovering;
 
   const updateOrigin = useCallback((clientX, clientY) => {
     const container = containerRef.current;
@@ -45,28 +44,7 @@ export default function ProductImageZoom({
     setHovering(true);
   };
 
-  const handleClick = (event) => {
-    const nextOrigin = containerRef.current
-      ? getOriginFromEvent(containerRef.current, event.clientX, event.clientY)
-      : origin;
-
-    if (!canHoverZoom) {
-      onOpenFullscreen?.(nextOrigin);
-      return;
-    }
-
-    setOrigin(nextOrigin);
-
-    if (pinned) {
-      setPinned(false);
-      return;
-    }
-
-    setPinned(true);
-  };
-
-  const handleDoubleClick = (event) => {
-    event.preventDefault();
+  const openDetailView = (event) => {
     const nextOrigin = containerRef.current
       ? getOriginFromEvent(containerRef.current, event.clientX, event.clientY)
       : origin;
@@ -79,19 +57,17 @@ export default function ProductImageZoom({
       ref={containerRef}
       className={cn(
         "relative overflow-hidden bg-[var(--color-surface)]",
-        canHoverZoom && (pinned ? "cursor-zoom-out" : "cursor-crosshair"),
-        !canHoverZoom && "cursor-zoom-in",
+        canHoverZoom ? "cursor-zoom-in" : "cursor-pointer",
         className,
       )}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={() => setHovering(false)}
       onPointerMove={(event) => {
-        if (canHoverZoom && !pinned) {
+        if (canHoverZoom) {
           updateOrigin(event.clientX, event.clientY);
         }
       }}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
+      onClick={openDetailView}
       role="button"
       tabIndex={0}
       onKeyDown={(event) => {
@@ -100,15 +76,15 @@ export default function ProductImageZoom({
           onOpenFullscreen?.(origin);
         }
       }}
-      aria-label="Zoom product image. Hover to magnify, click to pin, double-click for fullscreen."
+      aria-label="Hover to zoom. Click for full detail view."
     >
       <div
         className={cn(
           "absolute inset-0 transition-transform duration-200 ease-out",
-          isZoomed && "will-change-transform",
+          isHoverZoomed && "will-change-transform",
         )}
         style={{
-          transform: isZoomed ? `scale(${ZOOM_LEVEL})` : "scale(1)",
+          transform: isHoverZoomed ? `scale(${HOVER_ZOOM})` : "scale(1)",
           transformOrigin: `${origin.x}% ${origin.y}%`,
         }}
       >
@@ -124,7 +100,7 @@ export default function ProductImageZoom({
         />
       </div>
 
-      {isZoomed && hovering && !pinned ? (
+      {isHoverZoomed ? (
         <div
           className="pointer-events-none absolute z-[4] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/95 bg-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.18)] ring-1 ring-black/10 backdrop-blur-[1px]"
           style={{
@@ -141,19 +117,13 @@ export default function ProductImageZoom({
 
       <div
         className={cn(
-          "pointer-events-none absolute right-3 bottom-3 z-10 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm transition-opacity",
-          canHoverZoom ? "opacity-100" : "opacity-90",
+          "pointer-events-none absolute right-3 bottom-3 z-10 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm",
+          isHoverZoomed ? "opacity-100" : "opacity-90",
         )}
       >
         <ZoomIn className="size-3.5 shrink-0" aria-hidden />
-        <span className="hidden sm:inline">
-          {canHoverZoom
-            ? pinned
-              ? "Click to reset zoom"
-              : "Hover to zoom · Click to pin"
-            : "Tap to zoom"}
-        </span>
-        <span className="sm:hidden">Tap to zoom</span>
+        <span className="hidden sm:inline">Hover to zoom · Click for full detail</span>
+        <span className="sm:hidden">Tap for full detail</span>
       </div>
     </div>
   );
