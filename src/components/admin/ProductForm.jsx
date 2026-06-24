@@ -71,6 +71,7 @@ const defaultValues = {
   description: "",
   price: "",
   originalPrice: "",
+  discountPercent: "",
   category: "sarees",
   fabric: "",
   colors: [],
@@ -132,25 +133,99 @@ function formatTag(value) {
   return value.trim().toLowerCase().replace(/\s+/g, "-");
 }
 
+function parseAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+}
+
+function salePriceFromDiscount(originalPrice, discountPercent) {
+  const original = parseAmount(originalPrice);
+  const discount = parseAmount(discountPercent);
+  if (original == null) return "";
+  if (discount == null || discount <= 0) return String(Math.round(original));
+  const clamped = Math.min(100, discount);
+  return String(Math.round(original * (1 - clamped / 100)));
+}
+
+function discountFromPrices(originalPrice, salePrice) {
+  const original = parseAmount(originalPrice);
+  const sale = parseAmount(salePrice);
+  if (original == null || sale == null || original <= sale) return "";
+  return String(Math.round(((original - sale) / original) * 100));
+}
+
+function initialPricing(product) {
+  const price = product?.price != null && product.price !== "" ? String(product.price) : "";
+  const originalPrice =
+    product?.originalPrice != null && product.originalPrice !== ""
+      ? String(product.originalPrice)
+      : "";
+  const discountPercent = discountFromPrices(originalPrice, price);
+
+  return { price, originalPrice, discountPercent };
+}
+
 export default function ProductForm({ mode = "create", product }) {
   const router = useRouter();
-  const [values, setValues] = useState(() =>
-    product
-      ? {
-          ...defaultValues,
-          ...product,
-          sizes: normalizeSizes(product.sizes),
-          colors: normalizeColors(product),
-          colorImages: sanitizeColorImages(getColorImagesMap(product)),
-          colorSizes: normalizeColorSizes(product),
-          tags: normalizeTags(product.tags),
-        }
-      : defaultValues,
-  );
+  const [values, setValues] = useState(() => {
+    if (!product) return defaultValues;
+    const pricing = initialPricing(product);
+    return {
+      ...defaultValues,
+      ...product,
+      ...pricing,
+      sizes: normalizeSizes(product.sizes),
+      colors: normalizeColors(product),
+      colorImages: sanitizeColorImages(getColorImagesMap(product)),
+      colorSizes: normalizeColorSizes(product),
+      tags: normalizeTags(product.tags),
+    };
+  });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
   const slugPreview = useMemo(() => slugify(values.name), [values.name]);
+
+  function handleOriginalPriceChange(originalPrice) {
+    setValues((current) => {
+      const next = { ...current, originalPrice };
+      if (current.discountPercent !== "") {
+        next.price = salePriceFromDiscount(originalPrice, current.discountPercent);
+      } else if (originalPrice !== "" && current.price !== "") {
+        next.discountPercent = discountFromPrices(originalPrice, current.price);
+      }
+      return next;
+    });
+  }
+
+  function handleDiscountPercentChange(discountPercent) {
+    const normalized = discountPercent.replace(/[^\d.]/g, "");
+    setValues((current) => {
+      const next = { ...current, discountPercent: normalized };
+      const originalPrice = current.originalPrice || current.price;
+      if (originalPrice !== "" && normalized !== "") {
+        next.originalPrice = originalPrice;
+        next.price = salePriceFromDiscount(originalPrice, normalized);
+      } else if (normalized === "" && current.originalPrice !== "") {
+        next.price = current.originalPrice;
+      }
+      return next;
+    });
+  }
+
+  function handleSalePriceChange(price) {
+    setValues((current) => {
+      const next = { ...current, price };
+      const originalPrice = current.originalPrice || price;
+      if (originalPrice !== "" && price !== "") {
+        next.originalPrice = current.originalPrice || price;
+        next.discountPercent = discountFromPrices(originalPrice, price);
+      } else {
+        next.discountPercent = "";
+      }
+      return next;
+    });
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -183,7 +258,11 @@ export default function ProductForm({ mode = "create", product }) {
       sizes: values.sizes,
       tags: values.tags,
       price: Number(values.price || 0),
-      originalPrice: values.originalPrice ? Number(values.originalPrice) : null,
+      originalPrice:
+        values.originalPrice &&
+        Number(values.originalPrice) > Number(values.price || 0)
+          ? Number(values.originalPrice)
+          : null,
       isNew: values.isNew,
       isBestSeller: values.isBestSeller,
       inStock: values.inStock,
@@ -263,33 +342,60 @@ export default function ProductForm({ mode = "create", product }) {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="product-price">
-              Price (₹)
-            </label>
-            <input
-              id="product-price"
-              className="input-field"
-              type="number"
-              min="0"
-              value={values.price}
-              onChange={(e) => setValues((v) => ({ ...v, price: e.target.value }))}
-              required
-            />
-          </div>
-          <div>
             <label className="mb-1 block text-sm font-medium" htmlFor="product-original-price">
-              Original price (₹, optional)
+              Original price (₹, MRP)
             </label>
             <input
               id="product-original-price"
               className="input-field"
               type="number"
               min="0"
+              step="1"
               value={values.originalPrice}
-              onChange={(e) => setValues((v) => ({ ...v, originalPrice: e.target.value }))}
+              onChange={(e) => handleOriginalPriceChange(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium" htmlFor="product-discount">
+              Discount (%)
+            </label>
+            <input
+              id="product-discount"
+              className="input-field"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              placeholder="e.g. 20"
+              value={values.discountPercent}
+              onChange={(e) => handleDiscountPercentChange(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium" htmlFor="product-price">
+              Sale price (₹)
+            </label>
+            <input
+              id="product-price"
+              className="input-field"
+              type="number"
+              min="0"
+              step="1"
+              value={values.price}
+              onChange={(e) => handleSalePriceChange(e.target.value)}
+              required
             />
           </div>
         </div>
+        {values.originalPrice &&
+        values.price &&
+        Number(values.originalPrice) > Number(values.price) ? (
+          <p className="text-xs text-[var(--color-muted)]">
+            Customer saves ₹
+            {Math.round(Number(values.originalPrice) - Number(values.price))} (
+            {discountFromPrices(values.originalPrice, values.price)}% off)
+          </p>
+        ) : null}
 
         <div>
           <label className="mb-1 block text-sm font-medium" htmlFor="product-description">

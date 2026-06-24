@@ -157,6 +157,17 @@ export function homeWebPageJsonLd() {
 
 const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
 
+export const siteIcons = {
+  icon: [
+    { url: "/favicon.ico", sizes: "48x48" },
+    { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
+    { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+    { url: "/icon.png", type: "image/png", sizes: "512x512" },
+  ],
+  apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  shortcut: "/favicon.ico",
+};
+
 export const rootMetadata = {
   metadataBase: new URL(`${SITE_URL}/`),
   title: {
@@ -184,6 +195,7 @@ export const rootMetadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  icons: siteIcons,
   ...(googleVerification
     ? {
         verification: {
