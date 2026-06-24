@@ -1,8 +1,8 @@
 import { site } from "@/lib/site";
 
 export const metadata = {
-  title: "Contact",
-  description: `Contact ${site.name} (Mounis Maguva) in Vijayawada. WhatsApp, phone, email and store directions.`,
+  title: "Contact Us — Ethnic Wear Orders & Support",
+  description: `Contact ${site.name} in Vijayawada for the best ethnic wear orders. WhatsApp, phone, email and store directions.`,
   alternates: { canonical: "/contact" },
 };
 

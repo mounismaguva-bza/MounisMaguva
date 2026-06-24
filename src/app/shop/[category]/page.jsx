@@ -11,13 +11,47 @@ export async function generateStaticParams() {
   return categories.map((c) => ({ category: c.slug }));
 }
 
+const CATEGORY_SEO = {
+  sarees: {
+    title: "Buy Sarees Online — Best Silk & Designer Sarees",
+    description:
+      "Shop the best sarees online — silk, cotton and designer drapes. Handpicked ethnic sarees with free shipping across India.",
+  },
+  "three-piece-sets": {
+    title: "Buy 3 Piece Sets Online — Best Festive & Casual Sets",
+    description:
+      "Discover the best ready-to-wear 3 piece sets for weddings, festivals and everyday style. Curated ethnic outfits online.",
+  },
+  dresses: {
+    title: "Buy Dresses Online — Best Indo-Western & Ethnic Gowns",
+    description:
+      "Shop the best indo-western and ethnic dresses online. Elegant gowns and fusion wear for every occasion.",
+  },
+  kurtis: {
+    title: "Buy Kurtis Online — Best Everyday Ethnic Kurtis",
+    description:
+      "Browse the best kurtis for daily wear and festive occasions. Comfortable, stylish ethnic kurtis with pan-India delivery.",
+  },
+  dupattas: {
+    title: "Buy Dupattas Online — Best Ethnic Dupattas",
+    description:
+      "Complete your look with the best dupattas — silk, cotton and designer styles to pair with sarees and suits.",
+  },
+  "new-arrivals": {
+    title: "New Arrivals — Latest Ethnic Wear & Best New Styles",
+    description:
+      "See the latest ethnic wear arrivals — fresh sarees, kurtis and 3 piece sets from our newest collection.",
+  },
+};
+
 export async function generateMetadata({ params }) {
   const { category } = await params;
   const cat = categories.find((c) => c.slug === category);
-  if (!cat) return { title: "Shop" };
+  if (!cat) return { title: "Shop Ethnic Wear" };
+  const seo = CATEGORY_SEO[category];
   return {
-    title: cat.name,
-    description: cat.description,
+    title: seo?.title ?? `Buy ${cat.name} Online`,
+    description: seo?.description ?? cat.description,
     alternates: { canonical: `/shop/${category}` },
   };
 }

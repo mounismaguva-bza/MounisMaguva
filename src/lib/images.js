@@ -18,22 +18,33 @@ export const maguvaGallery = Array.from({ length: 27 }, (_, i) =>
   maguvaImage(i + 1),
 );
 
+/** Local collection photos in public/Maguva Images */
+export const collectionImages = {
+  threePieceSets: `${MAGUVA_DIR}/im1.jpeg`,
+  festiveSarees: `${MAGUVA_DIR}/im2.jpeg`,
+  dailyKurtis: `${MAGUVA_DIR}/im3.jpeg`,
+  indoWestern: `${MAGUVA_DIR}/im4.jpeg`,
+  dupatta: `${MAGUVA_DIR}/image4.jpg`,
+  newArrivals: `${MAGUVA_DIR}/image26.jpg`,
+  founder: `${MAGUVA_DIR}/mounika.png`,
+};
+
 /** Curated aliases used across hero, products, collections, and about */
 export const fashionImages = {
-  sareeRed: maguvaImage(1),
-  sareeDrape: maguvaImage(2),
-  sareeGold: maguvaImage(3),
-  sareePink: maguvaImage(4),
-  sareeLavender: maguvaImage(5),
-  lehengaBridal: maguvaImage(6),
-  lehengaFestive: maguvaImage(7),
-  lehengaParty: maguvaImage(8),
-  dressGown: maguvaImage(9),
-  dressAnarkali: maguvaImage(10),
-  kurtiIndigo: maguvaImage(11),
-  kurtiPeach: maguvaImage(12),
-  dupatta: maguvaImage(13),
-  fashionEditorial: maguvaImage(14),
-  hero: maguvaImage(1),
-  collectionsBanner: maguvaImage(16),
+  sareeRed: collectionImages.festiveSarees,
+  sareeDrape: collectionImages.festiveSarees,
+  sareeGold: collectionImages.threePieceSets,
+  sareePink: collectionImages.indoWestern,
+  sareeLavender: collectionImages.dailyKurtis,
+  lehengaBridal: collectionImages.threePieceSets,
+  lehengaFestive: collectionImages.festiveSarees,
+  lehengaParty: collectionImages.indoWestern,
+  dressGown: collectionImages.indoWestern,
+  dressAnarkali: collectionImages.indoWestern,
+  kurtiIndigo: collectionImages.dailyKurtis,
+  kurtiPeach: collectionImages.dailyKurtis,
+  dupatta: collectionImages.dupatta,
+  fashionEditorial: collectionImages.threePieceSets,
+  hero: collectionImages.festiveSarees,
+  collectionsBanner: collectionImages.newArrivals,
 };

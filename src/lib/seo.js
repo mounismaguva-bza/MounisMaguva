@@ -18,9 +18,9 @@ export const BRAND_KEYWORDS = [
   "MAGUVA",
   "Maguva Ethnics",
   "maguva_ethinics",
-  "Mounis Maguva official website",
   "Mounis Maguva Vijayawada",
-  "Mounis Maguva online store",
+  "best ethnic wear online India",
+  "best sarees online Vijayawada",
   "ethnic wear Vijayawada",
   "sarees online India",
   "kurtis online",
@@ -104,7 +104,7 @@ function websiteNode() {
     "@type": "WebSite",
     "@id": WEBSITE_ID,
     name: site.name,
-    alternateName: ["Mounis Maguva", "MAGUVA", "Mounis Maguva Official Website"],
+    alternateName: ["Mounis Maguva", "MAGUVA", "Best Ethnic Wear Vijayawada"],
     url: SITE_URL,
     description: site.description,
     publisher: { "@id": ORG_ID },
@@ -118,7 +118,7 @@ function homeWebPageNode() {
     "@type": "WebPage",
     "@id": HOME_PAGE_ID,
     url: absoluteUrl("/"),
-    name: `${site.name} — Official Online Store`,
+    name: `Best Ethnic Wear Online — ${site.name}`,
     description: site.description,
     isPartOf: { "@id": WEBSITE_ID },
     about: { "@id": ORG_ID },
@@ -160,10 +160,10 @@ const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.tri
 export const rootMetadata = {
   metadataBase: new URL(`${SITE_URL}/`),
   title: {
-    default: `${site.name} — Official Website | Mounis Maguva`,
+    default: `Best Sarees & Ethnic Wear Online | ${site.name}`,
     template: `%s | ${site.name}`,
   },
-  description: `${site.description} Shop at the official Mounis Maguva online store in Vijayawada.`,
+  description: `${site.description} Shop the best sarees, kurtis and three-piece sets from ${site.name} in Vijayawada, India.`,
   applicationName: site.name,
   keywords: BRAND_KEYWORDS,
   authors: [{ name: site.name, url: SITE_URL }],
@@ -196,7 +196,7 @@ export const rootMetadata = {
     locale: site.locale,
     url: SITE_URL,
     siteName: site.name,
-    title: `${site.name} — Official Website | Mounis Maguva`,
+    title: `Best Sarees & Ethnic Wear Online | ${site.name}`,
     description: site.description,
     images: [
       {
@@ -209,19 +209,19 @@ export const rootMetadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — Official Website`,
+    title: `Best Ethnic Wear Online | ${site.name}`,
     description: site.description,
     images: ["/og-image.png"],
   },
 };
 
 export const homeMetadata = {
-  title: `${site.name} — Official Online Store | Mounis Maguva`,
-  description: `Shop sarees, three-piece sets, dresses and kurtis at the official ${site.name} website. ${site.tagline}. Vijayawada, India.`,
+  title: `Best Ethnic Wear Online — Sarees, Kurtis & 3 Piece Sets`,
+  description: `Shop the best sarees, three-piece sets, dresses and kurtis at ${site.name}. ${site.tagline}. Free shipping across India. Vijayawada, Andhra Pradesh.`,
   alternates: { canonical: "/" },
   openGraph: {
-    title: `${site.name} — Official Online Store`,
-    description: site.description,
+    title: `Best Ethnic Wear Online — Sarees, Kurtis & 3 Piece Sets | ${site.name}`,
+    description: `Discover handpicked ethnic wear — the best sarees, kurtis and 3 piece sets from ${site.name}.`,
     url: "/",
   },
 };

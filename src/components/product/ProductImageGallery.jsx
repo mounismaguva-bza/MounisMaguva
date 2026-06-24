@@ -6,7 +6,6 @@ import useEmblaCarousel from "embla-carousel-react";
 import { createPortal } from "react-dom";
 import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -14,6 +13,7 @@ import {
   Plus,
   RotateCcw,
   Share2,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import HotBadge from "@/components/product/HotBadge";
@@ -188,52 +188,38 @@ function ProductLightbox({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex flex-col bg-black"
+      className="fixed inset-0 z-[200] flex flex-col bg-gradient-to-b from-white via-[var(--color-accent-cream)] to-[var(--color-cream)]"
       role="dialog"
       aria-modal="true"
       aria-label="Full detail image viewer"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#2a2420_0%,_#000_65%)]" />
-
-      <header className="relative z-10 flex items-center gap-3 border-b border-white/10 bg-black/70 px-3 py-3 backdrop-blur-md sm:px-5">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={onClose}
-          className="shrink-0 rounded-full bg-white/95 px-3 text-[var(--color-text)] shadow-md hover:bg-white sm:px-4"
-          aria-label="Back to product"
-        >
-          <ArrowLeft className="size-4 sm:mr-1.5" />
-          <span className="hidden sm:inline">Back</span>
-        </Button>
-
-        <div className="min-w-0 flex-1 text-center">
-          <p className="truncate text-sm font-medium text-white">{alt}</p>
-          <p className="text-xs text-white/55">
+      <header className="relative z-10 flex items-center gap-3 border-b border-[var(--color-border)]/80 bg-white/85 px-3 py-3 backdrop-blur-md sm:px-5">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-[var(--color-text)]">{alt}</p>
+          <p className="text-xs text-[var(--color-muted)]">
             Photo {selectedIndex + 1} of {images.length}
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-white/15 bg-white/10 p-1">
+        <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-[var(--color-border)] bg-white p-1 shadow-sm">
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-8 rounded-full text-white hover:bg-white/15"
+            className="size-8 rounded-full text-[var(--color-text)] hover:bg-[var(--color-cream)]"
             onClick={() => adjustZoom(-ZOOM_STEP)}
             aria-label="Zoom out"
           >
             <Minus className="size-4" />
           </Button>
-          <span className="min-w-11 text-center text-[11px] font-medium tabular-nums text-white/85">
+          <span className="min-w-11 text-center text-[11px] font-medium tabular-nums text-[var(--color-muted)]">
             {Math.round(zoom * 100)}%
           </span>
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-8 rounded-full text-white hover:bg-white/15"
+            className="size-8 rounded-full text-[var(--color-text)] hover:bg-[var(--color-cream)]"
             onClick={() => adjustZoom(ZOOM_STEP)}
             aria-label="Zoom in"
           >
@@ -243,13 +229,24 @@ function ProductLightbox({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-8 rounded-full text-white hover:bg-white/15"
+            className="size-8 rounded-full text-[var(--color-text)] hover:bg-[var(--color-cream)]"
             onClick={resetView}
             aria-label="Reset view"
           >
             <RotateCcw className="size-3.5" />
           </Button>
         </div>
+
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon-lg"
+          onClick={onClose}
+          className="size-10 shrink-0 rounded-full bg-white text-[var(--color-text)] shadow-md ring-1 ring-[var(--color-border)] hover:bg-[var(--color-cream)]"
+          aria-label="Close"
+        >
+          <X className="size-5" />
+        </Button>
       </header>
 
       <div className="relative z-10 min-h-0 flex-1" ref={lightboxRef} onWheel={handleWheel}>
@@ -320,7 +317,7 @@ function ProductLightbox({
       </div>
 
       {images.length > 1 && (
-        <div className="relative z-10 border-t border-white/10 bg-black/80 px-4 py-3">
+        <div className="relative z-10 border-t border-[var(--color-border)]/80 bg-white/80 px-4 py-3 backdrop-blur-md">
           <div className="flex justify-center gap-2 overflow-x-auto">
             {images.map((src, index) => (
               <button
@@ -331,10 +328,10 @@ function ProductLightbox({
                   onSelectIndex(index);
                 }}
                 className={cn(
-                  "relative h-14 w-12 shrink-0 overflow-hidden rounded-md border-2 bg-white/5",
+                  "relative h-14 w-12 shrink-0 overflow-hidden rounded-md border-2 bg-white",
                   selectedIndex === index
-                    ? "border-white ring-2 ring-white/30"
-                    : "border-white/20 opacity-70 hover:opacity-100",
+                    ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
+                    : "border-[var(--color-border)] opacity-80 hover:opacity-100",
                 )}
                 aria-label={`View image ${index + 1}`}
               >
@@ -352,7 +349,7 @@ function ProductLightbox({
         </div>
       )}
 
-      <p className="relative z-10 border-t border-white/10 bg-black/70 px-4 py-2.5 text-center text-[11px] text-white/55 backdrop-blur-md">
+      <p className="relative z-10 border-t border-[var(--color-border)]/80 bg-white/85 px-4 py-2.5 text-center text-[11px] text-[var(--color-muted)] backdrop-blur-md">
         Drag to explore detail · Pinch or scroll to zoom · Double-tap for closer view
       </p>
     </div>,

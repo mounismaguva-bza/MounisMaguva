@@ -4,31 +4,48 @@ import { Sparkles } from "lucide-react";
 import CollectionCategoryCard from "@/components/collections/CollectionCategoryCard";
 import ProductGrid from "@/components/product/ProductGrid";
 import { Button } from "@/components/ui/button";
-import { getImageOverrideMap } from "@/lib/media-overrides";
+import { collectionImages } from "@/lib/images";
 import { categories, site } from "@/lib/site";
 import { getNewArrivals } from "@/lib/products";
 
 export const metadata = {
-  title: "Collections",
-  description: "Explore curated ethnic wear collections from Maguva Ethnics.",
+  title: "Ethnic Wear Collections — Sarees, Kurtis & 3 Piece Sets",
+  description: `Explore the best curated ethnic wear collections at ${site.name}. Shop sarees, 3 piece sets, kurtis, dresses and new arrivals.`,
   alternates: { canonical: "/collections" },
 };
 
 export const revalidate = 60;
 
 const occasions = [
-  { label: "3 Piece Sets", href: "/shop/three-piece-sets" },
-  { label: "Festive Sarees", href: "/shop/sarees" },
-  { label: "Daily Kurtis", href: "/shop/kurtis" },
-  { label: "Indo-Western", href: "/shop/dresses" },
-  { label: "New Arrivals", href: "/shop/new-arrivals" },
+  {
+    label: "3 Piece Sets",
+    href: "/shop/three-piece-sets",
+    image: collectionImages.threePieceSets,
+  },
+  {
+    label: "Festive Sarees",
+    href: "/shop/sarees",
+    image: collectionImages.festiveSarees,
+  },
+  {
+    label: "Daily Kurtis",
+    href: "/shop/kurtis",
+    image: collectionImages.dailyKurtis,
+  },
+  {
+    label: "Indo-Western",
+    href: "/shop/dresses",
+    image: collectionImages.indoWestern,
+  },
+  {
+    label: "New Arrivals",
+    href: "/shop/new-arrivals",
+    image: collectionImages.newArrivals,
+  },
 ];
 
 export default async function CollectionsPage() {
-  const [highlights, imageMap] = await Promise.all([
-    getNewArrivals(8),
-    getImageOverrideMap(),
-  ]);
+  const highlights = await getNewArrivals(8);
   const bySlug = Object.fromEntries(categories.map((c) => [c.slug, c]));
   const sarees = bySlug["sarees"];
   const threePieceSets = bySlug["three-piece-sets"];
@@ -43,7 +60,7 @@ export default async function CollectionsPage() {
       <section className="relative overflow-hidden bg-[var(--color-primary)] text-white">
         <div className="absolute inset-0 opacity-20">
           <Image
-            src={imageMap["fashionImages.collectionsBanner"]}
+            src={collectionImages.newArrivals}
             alt=""
             fill
             className="object-cover"
@@ -77,7 +94,7 @@ export default async function CollectionsPage() {
             </div>
             <div className="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl lg:max-w-none">
               <Image
-                src={imageMap["fashionImages.sareeRed"]}
+                src={collectionImages.festiveSarees}
                 alt="Curated ethnic wear collection"
                 fill
                 className="object-cover"
@@ -94,17 +111,25 @@ export default async function CollectionsPage() {
           <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">
             Shop by occasion
           </p>
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 sm:gap-4">
             {occasions.map((item) => (
-              <Button
+              <Link
                 key={item.href}
-                variant="outline"
-                size="sm"
-                className="rounded-full border-[var(--color-border)] px-4 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                render={<Link href={item.href} />}
+                href={item.href}
+                className="group relative aspect-[4/5] overflow-hidden rounded-xl bg-[var(--color-surface)] shadow-sm transition-shadow hover:shadow-md"
               >
-                {item.label}
-              </Button>
+                <Image
+                  src={item.image}
+                  alt={item.label}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 640px) 50vw, 20vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                <p className="absolute inset-x-0 bottom-0 p-3 text-center text-sm font-semibold text-white">
+                  {item.label}
+                </p>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { fashionImages, maguvaImage } from "./images";
+import { collectionImages, fashionImages } from "./images";
 
 /** @typedef {'sarees' | 'three-piece-sets' | 'dresses' | 'kurtis' | 'dupattas' | 'new-arrivals'} CategorySlug */
 
@@ -52,7 +52,7 @@ export const categoryPromos = [
     href: "/shop/three-piece-sets",
     discount: "Get 30% off",
     title: "3 Pices Sets for Every Occasion",
-    image: maguvaImage(18),
+    image: collectionImages.threePieceSets,
     layout: "featured",
   },
 ];
@@ -62,42 +62,42 @@ export const categories = [
     slug: "sarees",
     name: "Sarees",
     description: "Silk, cotton & designer drapes",
-    image: maguvaImage(17),
+    image: collectionImages.festiveSarees,
     count: 48,
   },
   {
     slug: "three-piece-sets",
     name: "3 Pices Sets",
     description: "Ready-to-wear 3 piece outfits",
-    image: maguvaImage(18),
+    image: collectionImages.threePieceSets,
     count: 18,
   },
   {
     slug: "dresses",
     name: "Dresses",
     description: "Indo-western & ethnic gowns",
-    image: maguvaImage(19),
+    image: collectionImages.indoWestern,
     count: 23,
   },
   {
     slug: "kurtis",
     name: "Kurtis",
     description: "Everyday elegance",
-    image: maguvaImage(20),
+    image: collectionImages.dailyKurtis,
     count: 32,
   },
   {
     slug: "dupattas",
     name: "Dupattas",
     description: "Complete your look",
-    image: maguvaImage(21),
+    image: collectionImages.dupatta,
     count: 15,
   },
   {
     slug: "new-arrivals",
     name: "New Arrivals",
     description: "Fresh from our studio",
-    image: maguvaImage(22),
+    image: collectionImages.newArrivals,
     count: 12,
   },
 ];

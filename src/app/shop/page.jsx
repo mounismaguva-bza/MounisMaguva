@@ -7,8 +7,8 @@ import Link from "next/link";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Shop All",
-  description: "Browse our full collection of sarees, 3 piece sets, dresses and more.",
+  title: "Shop Ethnic Wear — Sarees, Kurtis & 3 Piece Sets",
+  description: "Browse the best sarees, 3 piece sets, dresses, kurtis and dupattas. Handpicked ethnic wear with free shipping across India.",
   alternates: { canonical: "/shop" },
 };
 

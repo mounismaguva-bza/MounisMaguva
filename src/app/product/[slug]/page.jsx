@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
 
   const description =
     product.description ||
-    `Shop ${product.name} at ${site.name}. SKU ${product.sku}.`;
+    `Buy ${product.name} online at ${site.name}. Best ethnic wear — SKU ${product.sku}. Free shipping across India.`;
   const image = getProductThumbnail(product);
   const path = `/product/${slug}`;
 
