@@ -10,10 +10,9 @@ async function getCount(collectionName) {
 }
 
 export default async function AdminDashboardPage() {
-  const [products, orders, heroSlides, banners, coupons, media] = await Promise.all([
+  const [products, orders, banners, coupons, media] = await Promise.all([
     getCount(COLLECTIONS.products),
     getCount(COLLECTIONS.orders),
-    getCount(COLLECTIONS.heroSlides),
     getCount(COLLECTIONS.banners),
     getCount(COLLECTIONS.coupons),
     getCount(COLLECTIONS.media),
@@ -22,7 +21,6 @@ export default async function AdminDashboardPage() {
   const cards = [
     { label: "Products", value: products },
     { label: "Orders", value: orders },
-    { label: "Hero slides", value: heroSlides },
     { label: "Offers", value: banners },
     { label: "Coupons", value: coupons },
     { label: "Images", value: media },
@@ -34,9 +32,9 @@ export default async function AdminDashboardPage() {
         Admin Dashboard
       </h1>
       <p className="text-sm text-[var(--color-muted)]">
-        Manage products, hero carousel, WhatsApp orders, offers, and images.
+        Manage products, WhatsApp orders, offers, coupons, and images.
       </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {cards.map((card) => (
           <div
             key={card.label}
