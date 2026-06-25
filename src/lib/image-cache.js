@@ -9,7 +9,7 @@ import {
   writeLocalStringSet,
 } from "@/lib/local-storage";
 
-const WARMED_IMAGES_KEY = "mm:warmed-images";
+export const WARMED_IMAGES_KEY = "mm:warmed-images";
 const MAX_WARMED_IMAGES = 400;
 
 /** Stable Cloudinary delivery URL for display and caching. */

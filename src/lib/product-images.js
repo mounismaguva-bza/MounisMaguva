@@ -1,4 +1,5 @@
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
+import { getColorOptions } from "@/lib/product-details";
 import { brandLogo } from "@/lib/images";
 import { site } from "@/lib/site";
 
@@ -214,6 +215,13 @@ export function getColorImagesMap(product) {
   return {};
 }
 
+/** Same default color as the product detail page (first available option). */
+export function getDefaultProductColor(product) {
+  const options = getColorOptions(product);
+  const preferred = options.find((option) => option.available) ?? options[0];
+  return preferred?.label || product?.colors?.[0] || product?.color || "";
+}
+
 /**
  * @param {import('./products').Product} product
  * @param {string} [colorLabel]
@@ -234,7 +242,7 @@ export function getImagesForColor(product, colorLabel) {
 
 /** First image for cards and listings */
 export function getProductThumbnail(product) {
-  const images = getImagesForColor(product, product?.colors?.[0] || product?.color);
+  const images = getImagesForColor(product, getDefaultProductColor(product));
   for (const image of images) {
     const normalized = normalizeProductImageSrc(image, null);
     if (normalized) return normalized;
@@ -252,12 +260,12 @@ export function isProductImageFallback(src) {
   return normalized === normalizeProductImageSrc(PRODUCT_IMAGE_FALLBACK);
 }
 
-/** Primary + next image for listing hover swap */
+/** Primary + next image for listing hover swap (default color only). */
 export function getProductCardImages(product) {
-  const images = getAllProductImages(product);
-  const primary = images[0] || getProductThumbnail(product);
+  const colorImages = getImagesForColor(product, getDefaultProductColor(product));
+  const primary = colorImages[0] || getProductThumbnail(product);
   const hover =
-    images.length > 1 && images[1] !== primary ? images[1] : null;
+    colorImages.length > 1 && colorImages[1] !== primary ? colorImages[1] : null;
   return { primary, hover };
 }
 

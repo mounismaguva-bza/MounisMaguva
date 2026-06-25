@@ -11,7 +11,7 @@ export const DEFAULT_HERO_SLIDES = [
   {
     title: "Timeless elegance for every celebration",
     description:
-      "Handpicked sarees, 3 piece sets and kurtis — curated for weddings, festivals and everyday grace.",
+      "Handpicked sarees, 3 piece sets and Frock — curated for weddings, festivals and everyday grace.",
     ctaLabel: "Shop collection",
     ctaHref: "/shop",
     imageKey: "fashionImages.sareeRed",
@@ -42,11 +42,11 @@ export const DEFAULT_HERO_SLIDES = [
     sortOrder: 3,
   },
   {
-    title: "Everyday kurtis, effortlessly beautiful",
+    title: "Everyday Frock, effortlessly beautiful",
     description:
       "Soft cotton and rayon — comfort you can wear from morning to evening.",
-    ctaLabel: "Shop kurtis",
-    ctaHref: "/shop/kurtis",
+    ctaLabel: "Shop Frock",
+    ctaHref: "/shop/Frock",
     imageKey: "fashionImages.kurtiPeach",
     image: fashionImages.kurtiPeach,
     alt: "Kurti collection",

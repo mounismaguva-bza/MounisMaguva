@@ -23,7 +23,7 @@ export const BRAND_KEYWORDS = [
   "best sarees online Vijayawada",
   "ethnic wear Vijayawada",
   "sarees online India",
-  "kurtis online",
+  "Frock online",
   "three piece sets",
   "Indian ethnic wear",
 ];
@@ -174,7 +174,7 @@ export const rootMetadata = {
     default: `Best Sarees & Ethnic Wear Online | ${site.name}`,
     template: `%s | ${site.name}`,
   },
-  description: `${site.description} Shop the best sarees, kurtis and three-piece sets from ${site.name} in Vijayawada, India.`,
+  description: `${site.description} Shop the best sarees, Frock and three-piece sets from ${site.name} in Vijayawada, India.`,
   applicationName: site.name,
   keywords: BRAND_KEYWORDS,
   authors: [{ name: site.name, url: SITE_URL }],
@@ -228,12 +228,12 @@ export const rootMetadata = {
 };
 
 export const homeMetadata = {
-  title: `Best Ethnic Wear Online — Sarees, Kurtis & 3 Piece Sets`,
-  description: `Shop the best sarees, three-piece sets, dresses and kurtis at ${site.name}. ${site.tagline}. Free shipping across India. Vijayawada, Andhra Pradesh.`,
+  title: `Best Ethnic Wear Online — Sarees, Frock & 3 Piece Sets`,
+  description: `Shop the best sarees, three-piece sets, dresses and Frock at ${site.name}. ${site.tagline}. Free shipping across India. Vijayawada, Andhra Pradesh.`,
   alternates: { canonical: "/" },
   openGraph: {
-    title: `Best Ethnic Wear Online — Sarees, Kurtis & 3 Piece Sets | ${site.name}`,
-    description: `Discover handpicked ethnic wear — the best sarees, kurtis and 3 piece sets from ${site.name}.`,
+    title: `Best Ethnic Wear Online — Sarees, Frock & 3 Piece Sets | ${site.name}`,
+    description: `Discover handpicked ethnic wear — the best sarees, Frock and 3 piece sets from ${site.name}.`,
     url: "/",
   },
 };

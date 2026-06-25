@@ -24,7 +24,7 @@ export default function ProductCard({ product }) {
   const hasImages = hasProductImages(product);
   const thumbnail = primary || getProductThumbnail(product);
 
-  const imageVersion = product.updatedAt || product.id;
+  const imageVersion = `${product.updatedAt || product.id}-${primary}`;
 
   function handleAddToCart(e) {
     e.preventDefault();

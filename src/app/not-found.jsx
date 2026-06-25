@@ -5,7 +5,7 @@ import { site } from "@/lib/site";
 
 export const metadata = {
   title: "Page Not Found",
-  description: `This page could not be found. Browse sarees, kurtis and ethnic wear at ${site.name}.`,
+  description: `This page could not be found. Browse sarees, Frock and ethnic wear at ${site.name}.`,
   robots: { index: false, follow: true },
 };
 

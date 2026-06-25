@@ -259,7 +259,7 @@ export default function LaunchCelebration({ countdownSeconds }) {
                 The boutique is open
               </h2>
               <p className="launch-pop launch-delay-2 mx-auto mt-4 max-w-md text-sm leading-relaxed text-[var(--color-cream)]/70 sm:text-base">
-                Discover sarees, three-piece sets, dresses and kurtis — curated
+                Discover sarees, three-piece sets, dresses and Frock — curated
                 with timeless Indian elegance.
               </p>
 

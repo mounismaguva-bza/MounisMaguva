@@ -1,15 +1,31 @@
 "use client";
 
 import { useEffect } from "react";
-import { cacheProductsAndWarmImages } from "@/lib/products-cache";
+import { scheduleBackgroundTask } from "@/lib/background-task";
+import {
+  cacheProductsInBackground,
+  setCachedProducts,
+} from "@/lib/products-cache";
 
 /**
- * Saves the product catalog to localStorage and prefetches Cloudinary images
- * so repeat visits reuse the browser cache with fewer Cloudinary requests.
+ * Saves catalog to localStorage right after mount, then prefetches images in idle time.
  */
 export default function ProductCacheWarmer({ products = [] }) {
   useEffect(() => {
-    cacheProductsAndWarmImages(products);
+    if (!products.length) return undefined;
+
+    // Write immediately so DevTools / repeat visits see cache without waiting for idle.
+    setCachedProducts(products);
+
+    let cancelBatch = () => {};
+    const cancelSchedule = scheduleBackgroundTask(() => {
+      cancelBatch = cacheProductsInBackground(products);
+    });
+
+    return () => {
+      cancelSchedule();
+      cancelBatch();
+    };
   }, [products]);
 
   return null;

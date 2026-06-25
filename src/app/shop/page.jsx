@@ -4,11 +4,11 @@ import { categories } from "@/lib/site";
 import { getAllProducts } from "@/lib/products";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata = {
-  title: "Shop Ethnic Wear — Sarees, Kurtis & 3 Piece Sets",
-  description: "Browse the best sarees, 3 piece sets, dresses, kurtis and dupattas. Handpicked ethnic wear with free shipping across India.",
+  title: "Shop Ethnic Wear — Sarees, Frock & 3 Piece Sets",
+  description: "Browse the best sarees, 3 piece sets, dresses, Frock and dupattas. Handpicked ethnic wear with free shipping across India.",
   alternates: { canonical: "/shop" },
 };
 

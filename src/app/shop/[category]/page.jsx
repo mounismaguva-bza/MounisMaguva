@@ -5,7 +5,7 @@ import { getProductsByCategory } from "@/lib/products";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   return categories.map((c) => ({ category: c.slug }));
@@ -27,10 +27,10 @@ const CATEGORY_SEO = {
     description:
       "Shop the best indo-western and ethnic dresses online. Elegant gowns and fusion wear for every occasion.",
   },
-  kurtis: {
-    title: "Buy Kurtis Online — Best Everyday Ethnic Kurtis",
+  Frock: {
+    title: "Buy Frock Online — Best Everyday Ethnic Frock",
     description:
-      "Browse the best kurtis for daily wear and festive occasions. Comfortable, stylish ethnic kurtis with pan-India delivery.",
+      "Browse the best Frock for daily wear and festive occasions. Comfortable, stylish ethnic Frock with pan-India delivery.",
   },
   dupattas: {
     title: "Buy Dupattas Online — Best Ethnic Dupattas",
@@ -40,7 +40,7 @@ const CATEGORY_SEO = {
   "new-arrivals": {
     title: "New Arrivals — Latest Ethnic Wear & Best New Styles",
     description:
-      "See the latest ethnic wear arrivals — fresh sarees, kurtis and 3 piece sets from our newest collection.",
+      "See the latest ethnic wear arrivals — fresh sarees, Frock and 3 piece sets from our newest collection.",
   },
 };
 

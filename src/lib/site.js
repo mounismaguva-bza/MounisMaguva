@@ -1,6 +1,6 @@
 import { collectionImages, fashionImages } from "./images";
 
-/** @typedef {'sarees' | 'three-piece-sets' | 'dresses' | 'kurtis' | 'dupattas' | 'new-arrivals'} CategorySlug */
+/** @typedef {'sarees' | 'three-piece-sets' | 'dresses' | 'Frock' | 'dupattas' | 'new-arrivals'} CategorySlug */
 
 export const site = {
   name: "Mouni's Maguva",
@@ -8,13 +8,13 @@ export const site = {
   brandName: "MAGUVA",
   tagline: "Style for Every Occasion",
   description:
-    "Discover handpicked sarees, 3 piece sets, dresses and kurtis. Curated ethnic wear with timeless Indian craftsmanship.",
+    "Discover handpicked sarees, 3 piece sets, dresses and Frock. Curated ethnic wear with timeless Indian craftsmanship.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.mounismaguva.com",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "918500947079",
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919491080899",
   instagram: "https://www.instagram.com/maguva_ethinics",
   instagramHandle: "@maguva_ethinics",
   email: "hello@maguvaethnics.com",
-  phone: "+91 85009 47079",
+  phone: "+91 94910 80899",
   address:
     "Benz Circle, beside Raj Darbar Restaurant, Vijayawada, Andhra Pradesh, India",
   mapEmbedUrl:
@@ -34,15 +34,15 @@ export const categoryPromos = [
   {
     slug: "sarees",
     href: "/shop/sarees",
-    discount: "Get 30% off",
+    discount: "Get Upto 20% off",
     title: "Women's Latest Saree Collection",
     image: fashionImages.sareeRed,
     layout: "horizontal",
   },
   {
-    slug: "kurtis",
-    href: "/shop/kurtis",
-    discount: "Get 40% off",
+    slug: "Frock",
+    href: "/shop/Frock",
+    discount: "Get Upto 20% off",
     title: "Women's Latest Kurti Collection",
     image: fashionImages.kurtiIndigo,
     layout: "horizontal",
@@ -50,7 +50,7 @@ export const categoryPromos = [
   {
     slug: "three-piece-sets",
     href: "/shop/three-piece-sets",
-    discount: "Get 30% off",
+    discount: "Get Upto 20% off",
     title: "3 Pices Sets for Every Occasion",
     image: collectionImages.threePieceSets,
     layout: "featured",
@@ -80,10 +80,10 @@ export const categories = [
     count: 23,
   },
   {
-    slug: "kurtis",
-    name: "Kurtis",
+    slug: "Frock",
+    name: "Frock",
     description: "Everyday elegance",
-    image: collectionImages.dailyKurtis,
+    image: collectionImages.dailyFrock,
     count: 32,
   },
   {

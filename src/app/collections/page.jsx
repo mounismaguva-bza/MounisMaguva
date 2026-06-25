@@ -9,8 +9,8 @@ import { categories, site } from "@/lib/site";
 import { getNewArrivals } from "@/lib/products";
 
 export const metadata = {
-  title: "Ethnic Wear Collections — Sarees, Kurtis & 3 Piece Sets",
-  description: `Explore the best curated ethnic wear collections at ${site.name}. Shop sarees, 3 piece sets, kurtis, dresses and new arrivals.`,
+  title: "Ethnic Wear Collections — Sarees, Frock & 3 Piece Sets",
+  description: `Explore the best curated ethnic wear collections at ${site.name}. Shop sarees, 3 piece sets, Frock, dresses and new arrivals.`,
   alternates: { canonical: "/collections" },
 };
 
@@ -28,9 +28,9 @@ const occasions = [
     image: collectionImages.festiveSarees,
   },
   {
-    label: "Daily Kurtis",
-    href: "/shop/kurtis",
-    image: collectionImages.dailyKurtis,
+    label: "Daily Frock",
+    href: "/shop/Frock",
+    image: collectionImages.dailyFrock,
   },
   {
     label: "Indo-Western",
@@ -50,7 +50,7 @@ export default async function CollectionsPage() {
   const sarees = bySlug["sarees"];
   const threePieceSets = bySlug["three-piece-sets"];
   const dresses = bySlug["dresses"];
-  const kurtis = bySlug["kurtis"];
+  const Frock = bySlug["Frock"];
   const dupattas = bySlug["dupattas"];
   const newArrivals = bySlug["new-arrivals"];
 
@@ -80,7 +80,7 @@ export default async function CollectionsPage() {
                 Our Collections
               </h1>
               <p className="mt-5 max-w-lg text-base leading-relaxed text-white/85 sm:text-lg">
-                From 3 piece sets to everyday kurtis — every piece is chosen for fabric,
+                From 3 piece sets to everyday Frock — every piece is chosen for fabric,
                 drape, and how it photographs on {site.instagramHandle}.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -181,11 +181,11 @@ export default async function CollectionsPage() {
               className="col-span-2 md:col-span-2"
             />
             <CollectionCategoryCard
-              href={`/shop/${kurtis.slug}`}
-              name={kurtis.name}
-              description={kurtis.description}
-              image={kurtis.image}
-              count={kurtis.count}
+              href={`/shop/${Frock.slug}`}
+              name={Frock.name}
+              description={Frock.description}
+              image={Frock.image}
+              count={Frock.count}
               className="col-span-1"
             />
             <CollectionCategoryCard

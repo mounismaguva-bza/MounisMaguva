@@ -5,7 +5,7 @@ import { site } from "@/lib/site";
 
 export const metadata = {
   title: "Our Story — About Mouni's Maguva Ethnic Wear",
-  description: `Learn about ${site.name} — premium ethnic wear for women. Handpicked sarees, kurtis and 3 piece sets from Vijayawada, India.`,
+  description: `Learn about ${site.name} — premium ethnic wear for women. Handpicked sarees, Frock and 3 piece sets from Vijayawada, India.`,
   alternates: { canonical: "/about" },
 };
 
