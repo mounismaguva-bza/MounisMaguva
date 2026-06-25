@@ -1,8 +1,12 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { categories } from "@/lib/site";
+
+export const PRODUCTS_CACHE_TAG = "products";
 
 /** Refresh storefront pages after admin catalog changes. */
 export function revalidateStorefront(productSlug) {
+  revalidateTag(PRODUCTS_CACHE_TAG, "max");
+
   revalidatePath("/");
   revalidatePath("/shop");
   revalidatePath("/collections");

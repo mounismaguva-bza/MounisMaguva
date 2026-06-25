@@ -24,6 +24,8 @@ export default function ProductCard({ product }) {
   const hasImages = hasProductImages(product);
   const thumbnail = primary || getProductThumbnail(product);
 
+  const imageVersion = product.updatedAt || product.id;
+
   function handleAddToCart(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -57,6 +59,7 @@ export default function ProductCard({ product }) {
             alt={product.name}
             fill
             displaySize="card"
+            cacheKey={imageVersion}
             className={cn(
               "object-contain transition-all duration-500",
               hasImages ? "p-3" : "p-8",
@@ -72,6 +75,7 @@ export default function ProductCard({ product }) {
               alt={`${product.name} — alternate view`}
               fill
               displaySize="card"
+              cacheKey={imageVersion}
               className="object-contain p-3 opacity-0 transition-all duration-500 group-hover/card:opacity-100"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />

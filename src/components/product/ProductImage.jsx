@@ -15,12 +15,13 @@ export default function ProductImage({
   className,
   fallback,
   displaySize = "full",
+  cacheKey,
   quality = 100,
   ...props
 }) {
   const displaySrc = useMemo(
-    () => getDisplayImageSrc(src, fallback, displaySize),
-    [src, fallback, displaySize],
+    () => getDisplayImageSrc(src, fallback, displaySize, cacheKey),
+    [src, fallback, displaySize, cacheKey],
   );
   const unoptimized = useMemo(
     () => shouldBypassNextImageOptimizer(src, displaySize),
@@ -35,6 +36,7 @@ export default function ProductImage({
 
   return (
     <Image
+      key={displaySrc}
       src={displaySrc}
       alt={alt}
       unoptimized={unoptimized}

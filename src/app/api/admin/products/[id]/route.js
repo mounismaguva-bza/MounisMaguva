@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { after } from "next/server";
 import {
   COLLECTIONS,
   dbNow,
@@ -36,9 +35,7 @@ export async function PUT(request, { params }) {
       id,
       updatedAt: dbNow(),
     });
-    after(() => {
-      revalidateStorefront(data.slug);
-    });
+    revalidateStorefront(data.slug);
     return NextResponse.json({ ok: true });
   } catch (routeError) {
     return jsonError(routeError);

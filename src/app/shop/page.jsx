@@ -4,7 +4,7 @@ import { categories } from "@/lib/site";
 import { getAllProducts } from "@/lib/products";
 import Link from "next/link";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Shop Ethnic Wear — Sarees, Kurtis & 3 Piece Sets",

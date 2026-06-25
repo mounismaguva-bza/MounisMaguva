@@ -1,5 +1,7 @@
+import { unstable_cache } from "next/cache";
 import { MAX_PRODUCTS } from "./constants";
 import { COLLECTIONS, listCollection } from "@/lib/firestore";
+import { PRODUCTS_CACHE_TAG } from "@/lib/revalidate-storefront";
 
 /** @typedef {import('./site').CategorySlug} CategorySlug */
 
@@ -38,8 +40,14 @@ async function getFirestoreProducts() {
   }
 }
 
+const getCachedFirestoreProducts = unstable_cache(
+  getFirestoreProducts,
+  ["firestore-products"],
+  { tags: [PRODUCTS_CACHE_TAG], revalidate: 60 },
+);
+
 export async function getAllProducts() {
-  const firestoreProducts = await getFirestoreProducts();
+  const firestoreProducts = await getCachedFirestoreProducts();
   return firestoreProducts.slice(0, MAX_PRODUCTS);
 }
 
