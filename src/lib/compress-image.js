@@ -4,6 +4,39 @@ export const IMAGE_UPLOAD_TARGET_BYTES = 5 * 1024 * 1024;
 /** Hard reject limit for very large source files. */
 export const IMAGE_UPLOAD_MAX_BYTES = 25 * 1024 * 1024;
 
+/** File input accept list — includes HEIC/HEIF from iPhone cameras. */
+export const IMAGE_UPLOAD_ACCEPT =
+  "image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,.heic,.heif";
+
+export function isHeicFile(file) {
+  const name = (file instanceof File ? file.name : "").toLowerCase();
+  const type = (file.type || "").toLowerCase();
+  return (
+    type === "image/heic" ||
+    type === "image/heif" ||
+    name.endsWith(".heic") ||
+    name.endsWith(".heif")
+  );
+}
+
+export function isAcceptedImageFile(file) {
+  if (!(file instanceof File) && !(file instanceof Blob)) return false;
+  if (isHeicFile(file)) return true;
+  return (file.type || "").startsWith("image/");
+}
+
+async function convertHeicToJpegBlob(file) {
+  const heic2any = (await import("heic2any")).default;
+  const result = await heic2any({
+    blob: file,
+    toType: "image/jpeg",
+    quality: 0.92,
+  });
+  const blob = Array.isArray(result) ? result[0] : result;
+  if (!blob) throw new Error("Could not convert HEIC image");
+  return blob;
+}
+
 const MAX_DIMENSION = 4000;
 const MIN_DIMENSION = 1200;
 const EXPORT_QUALITY = 0.95;
@@ -101,8 +134,9 @@ async function renderToWebP(source, width, height, canvas, quality = EXPORT_QUAL
 
 /**
  * Hybrid upload prep:
- * - ≤ 5MB → original file unchanged
- * - > 5MB → resize only (no crop) at high quality until under 5MB
+ * - HEIC/HEIF → always converted to WebP
+ * - Other formats ≤ 5MB → original file unchanged
+ * - Other formats > 5MB → resize only (no crop) at high quality until under 5MB
  * @param {File | Blob} file
  * @returns {Promise<File>}
  */
@@ -118,19 +152,27 @@ export async function compressImageForUpload(file) {
     );
   }
 
-  if (file.size <= IMAGE_UPLOAD_TARGET_BYTES && file instanceof File) {
-    return file;
+  const fromHeic = isHeicFile(file);
+  const baseName = stripExtension(file instanceof File ? file.name : "image");
+  let working = file;
+
+  if (fromHeic) {
+    const jpegBlob = await convertHeicToJpegBlob(file);
+    working = fileFromBlob(jpegBlob, `${baseName}.jpg`, "image/jpeg");
   }
 
-  const source = await loadImageFromFile(file);
-  const baseName = stripExtension(file instanceof File ? file.name : "image");
+  if (!fromHeic && working.size <= IMAGE_UPLOAD_TARGET_BYTES && working instanceof File) {
+    return working;
+  }
+
+  const source = await loadImageFromFile(working);
   const canvas = document.createElement("canvas");
 
   try {
     let { width, height } = estimateDimensions(
       source.width,
       source.height,
-      file.size,
+      working.size,
       IMAGE_UPLOAD_TARGET_BYTES,
     );
 

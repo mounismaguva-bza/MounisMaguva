@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { compressImageForUpload } from "@/lib/compress-image";
+import {
+  compressImageForUpload,
+  IMAGE_UPLOAD_ACCEPT,
+  isAcceptedImageFile,
+} from "@/lib/compress-image";
 import { prepareAndUploadImage } from "@/lib/cloudinary-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
@@ -44,7 +48,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
   }
 
   async function uploadFilesForColor(color, rawFiles) {
-    const files = Array.from(rawFiles || []).filter((f) => f.type.startsWith("image/"));
+    const files = Array.from(rawFiles || []).filter(isAcceptedImageFile);
     if (!files.length) return;
 
     const existing = colorImages[color] || [];
@@ -172,7 +176,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
                   {uploadingColor === color ? "Uploading..." : "Choose images to upload"}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={IMAGE_UPLOAD_ACCEPT}
                     multiple
                     className="sr-only"
                     disabled={uploadingColor === color}

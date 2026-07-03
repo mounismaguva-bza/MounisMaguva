@@ -11,6 +11,8 @@ const ALLOWED_TYPES = new Set([
   "image/webp",
   "image/gif",
   "image/avif",
+  "image/heic",
+  "image/heif",
 ]);
 
 export async function POST(request) {

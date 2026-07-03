@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { compressImageForUpload } from "@/lib/compress-image";
+import {
+  compressImageForUpload,
+  IMAGE_UPLOAD_ACCEPT,
+  isAcceptedImageFile,
+} from "@/lib/compress-image";
 import { prepareAndUploadImage } from "@/lib/cloudinary-client";
 import { MAX_HERO_SLIDES } from "@/lib/constants";
 import { normalizeProductImageSrc } from "@/lib/product-images";
@@ -64,7 +68,7 @@ export default function HeroSlidesEditor() {
   }
 
   async function uploadImage(file) {
-    if (!file?.type?.startsWith("image/")) return;
+    if (!isAcceptedImageFile(file)) return;
     setUploading(true);
     setError("");
     try {
@@ -218,7 +222,7 @@ export default function HeroSlidesEditor() {
           <input
             className="mt-3 block w-full text-sm"
             type="file"
-            accept="image/*"
+            accept={IMAGE_UPLOAD_ACCEPT}
             disabled={uploading}
             onChange={(e) => {
               const file = e.target.files?.[0];
