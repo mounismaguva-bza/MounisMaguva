@@ -158,13 +158,15 @@ export function MultiSuggestionField({
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === ",") {
+            if (e.key === "Enter") {
               e.preventDefault();
-              if (filtered.length === 1) {
-                commit(filtered[0]);
-              } else {
-                commit(input);
-              }
+              e.stopPropagation();
+              commit(input);
+              return;
+            }
+            if (e.key === ",") {
+              e.preventDefault();
+              commit(input.replace(/,+$/, ""));
             }
             if (e.key === "Escape") setOpen(false);
           }}
