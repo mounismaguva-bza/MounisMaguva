@@ -201,7 +201,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
                   onFiles={(files) => uploadFilesForColor(color, files)}
                 />
                 <p className="mt-2 text-[10px] text-[var(--color-muted)]">
-                  On mobile: tap Show upload QR code, scan it, then upload photos on the upload page.
+                  Photos auto-save on mobile and sync here. Tap X on a saved photo to remove it.
                 </p>
               </>
             )}

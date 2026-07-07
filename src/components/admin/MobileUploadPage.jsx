@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, ImagePlus, RefreshCw, Upload, X } from "lucide-react";
+import { ImagePlus, RefreshCw, X } from "lucide-react";
 import {
   compressImageForUpload,
   IMAGE_UPLOAD_ACCEPT,
@@ -13,25 +13,16 @@ import { prepareAndUploadImage } from "@/lib/cloudinary-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
 
-function revokePreviewUrl(url) {
-  if (url?.startsWith("blob:")) {
-    URL.revokeObjectURL(url);
-  }
-}
+const AUTO_CLOSE_MS = 900;
 
 export default function MobileUploadPage({ token, initialSession }) {
   const router = useRouter();
   const [session, setSession] = useState(initialSession);
-  const [pendingFiles, setPendingFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const [savedCount, setSavedCount] = useState(initialSession.images?.length || 0);
+  const [status, setStatus] = useState("");
   const [closing, setClosing] = useState(false);
-  const pendingFilesRef = useRef(pendingFiles);
-
-  useEffect(() => {
-    pendingFilesRef.current = pendingFiles;
-  }, [pendingFiles]);
+  const closeTimerRef = useRef(null);
 
   const refreshSession = useCallback(async () => {
     const response = await fetch(`/api/admin/upload-session/${token}`, {
@@ -39,10 +30,7 @@ export default function MobileUploadPage({ token, initialSession }) {
       cache: "no-store",
     });
     const data = await response.json().catch(() => ({}));
-    if (response.ok) {
-      setSession(data);
-      setSavedCount(data.images?.length || 0);
-    }
+    if (response.ok) setSession(data);
   }, [token]);
 
   useEffect(() => {
@@ -52,47 +40,35 @@ export default function MobileUploadPage({ token, initialSession }) {
 
   useEffect(() => {
     return () => {
-      pendingFilesRef.current.forEach((item) => revokePreviewUrl(item.previewUrl));
+      if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
     };
   }, []);
 
-  function addPendingFiles(fileList) {
+  const closePage = useCallback(() => {
+    setClosing(true);
+    if (typeof window !== "undefined") {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+        return;
+      }
+      if (window.history.length > 1) {
+        router.back();
+        return;
+      }
+    }
+    router.push("/admin/products");
+  }, [router]);
+
+  const scheduleAutoClose = useCallback(() => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = window.setTimeout(() => {
+      closePage();
+    }, AUTO_CLOSE_MS);
+  }, [closePage]);
+
+  async function uploadFiles(fileList) {
     const files = Array.from(fileList || []).filter(isAcceptedImageFile);
-    if (!files.length) return;
-
-    const currentCount = session.images?.length || 0;
-    const pendingCount = pendingFiles.length;
-    const remaining = MAX_IMAGES_PER_COLOR - currentCount - pendingCount;
-
-    if (remaining <= 0) {
-      setError(`Maximum ${MAX_IMAGES_PER_COLOR} photos allowed for this color.`);
-      return;
-    }
-
-    const next = files.slice(0, remaining).map((file) => ({
-      id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-
-    setError("");
-    setPendingFiles((current) => [...current, ...next]);
-
-    if (files.length > remaining) {
-      setError(`Only ${remaining} more photo${remaining === 1 ? "" : "s"} can be added.`);
-    }
-  }
-
-  function removePendingFile(id) {
-    setPendingFiles((current) => {
-      const item = current.find((entry) => entry.id === id);
-      if (item) revokePreviewUrl(item.previewUrl);
-      return current.filter((entry) => entry.id !== id);
-    });
-  }
-
-  async function handleUpload() {
-    if (!pendingFiles.length || uploading) return;
+    if (!files.length || uploading) return;
 
     const count = session.images?.length || 0;
     const remaining = MAX_IMAGES_PER_COLOR - count;
@@ -102,10 +78,11 @@ export default function MobileUploadPage({ token, initialSession }) {
     }
 
     setError("");
+    setStatus("");
     setUploading(true);
 
     try {
-      const toUpload = pendingFiles.slice(0, remaining).map((item) => item.file);
+      const toUpload = files.slice(0, remaining);
       const uploads = await Promise.all(
         toUpload.map((file) =>
           prepareAndUploadImage(file, {
@@ -131,9 +108,10 @@ export default function MobileUploadPage({ token, initialSession }) {
       if (!response.ok) throw new Error(data.error || "Could not save uploaded images");
 
       setSession(data);
-      setSavedCount(data.images?.length || 0);
-      pendingFiles.forEach((item) => revokePreviewUrl(item.previewUrl));
-      setPendingFiles([]);
+      setStatus(
+        `${urls.length} photo${urls.length === 1 ? "" : "s"} saved. Closing…`,
+      );
+      scheduleAutoClose();
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Upload failed");
     } finally {
@@ -141,67 +119,80 @@ export default function MobileUploadPage({ token, initialSession }) {
     }
   }
 
-  function handleSaveAndClose() {
-    setClosing(true);
+  async function removeSavedImage(url) {
+    if (uploading) return;
 
-    if (typeof window !== "undefined") {
-      if (window.opener && !window.opener.closed) {
-        window.close();
-        return;
-      }
-      if (window.history.length > 1) {
-        router.back();
-        return;
-      }
+    setError("");
+    const response = await fetch(`/api/admin/upload-session/${token}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ url }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(data.error || "Could not remove image");
+      return;
     }
-
-    router.push("/admin/products");
+    setSession(data);
   }
 
   const images = session.images || [];
-  const hasPending = pendingFiles.length > 0;
-  const canUpload = hasPending && !uploading;
-  const canClose = savedCount > 0 && !hasPending && !uploading;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-lg flex-col gap-5 px-4 py-6 pb-28">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">
-          Mobile upload
-        </p>
-        <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl text-[var(--color-primary)]">
-          {session.color}
-        </h1>
-        <p className="mt-2 text-sm text-[var(--color-muted)]">
-          Choose photos, tap Upload, then Save &amp; close when finished.
-        </p>
+    <div className="mx-auto flex min-h-[100dvh] max-w-lg flex-col gap-5 px-4 py-6">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">
+            Mobile upload
+          </p>
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl text-[var(--color-primary)]">
+            {session.color}
+          </h1>
+          <p className="mt-2 text-sm text-[var(--color-muted)]">
+            Take or choose a photo — it saves automatically and this page closes.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={uploading || closing}
+          onClick={closePage}
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-[var(--color-muted)] hover:bg-[var(--color-cream)]/60 disabled:opacity-50"
+          aria-label="Cancel and close"
+        >
+          <X className="size-5" />
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <label className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-primary)] bg-white px-4 py-3 text-sm font-semibold text-[var(--color-primary)] hover:bg-[var(--color-cream)]/50">
+        <label
+          className={`inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white hover:bg-[var(--color-primary-dark)] ${uploading ? "pointer-events-none opacity-60" : ""}`}
+        >
           <input
             type="file"
             accept="image/*"
             capture="environment"
             className="sr-only"
-            disabled={uploading}
+            disabled={uploading || closing}
             onChange={(e) => {
-              addPendingFiles(e.target.files);
+              uploadFiles(e.target.files);
               e.target.value = "";
             }}
           />
           <ImagePlus className="size-4" />
           Take photo
         </label>
-        <label className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-primary)] bg-white px-4 py-3 text-sm font-semibold text-[var(--color-primary)] hover:bg-[var(--color-cream)]/50">
+        <label
+          className={`inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-primary)] bg-white px-4 py-3 text-sm font-semibold text-[var(--color-primary)] hover:bg-[var(--color-cream)]/50 ${uploading ? "pointer-events-none opacity-60" : ""}`}
+        >
           <input
             type="file"
             accept={IMAGE_UPLOAD_ACCEPT}
             multiple
             className="sr-only"
-            disabled={uploading}
+            disabled={uploading || closing}
             onChange={(e) => {
-              addPendingFiles(e.target.files);
+              uploadFiles(e.target.files);
               e.target.value = "";
             }}
           />
@@ -210,36 +201,10 @@ export default function MobileUploadPage({ token, initialSession }) {
         </label>
       </div>
 
-      {hasPending ? (
-        <div className="rounded-xl border border-[var(--color-border)] bg-white p-4">
-          <p className="mb-3 text-sm font-medium">
-            Ready to upload ({pendingFiles.length})
-          </p>
-          <ul className="grid grid-cols-3 gap-2">
-            {pendingFiles.map((item) => (
-              <li key={item.id} className="relative aspect-square overflow-hidden rounded-lg border">
-                <Image
-                  src={item.previewUrl}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="120px"
-                  unoptimized
-                />
-                <button
-                  type="button"
-                  onClick={() => removePendingFile(item.id)}
-                  className="absolute top-1 right-1 inline-flex size-7 items-center justify-center rounded-full bg-black/65 text-white"
-                  aria-label="Remove photo"
-                >
-                  <X className="size-3.5" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {uploading ? (
+        <p className="text-sm font-medium text-[var(--color-primary)]">Uploading and saving…</p>
       ) : null}
-
+      {status ? <p className="text-sm font-medium text-emerald-700">{status}</p> : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <div className="rounded-xl border border-[var(--color-border)] bg-white p-4">
@@ -259,39 +224,21 @@ export default function MobileUploadPage({ token, initialSession }) {
             {images.map((url) => (
               <li key={url} className="relative aspect-square overflow-hidden rounded-lg border">
                 <Image src={url} alt="" fill className="object-cover" sizes="120px" />
+                <button
+                  type="button"
+                  disabled={uploading || closing}
+                  onClick={() => removeSavedImage(url)}
+                  className="absolute top-1 right-1 inline-flex size-7 items-center justify-center rounded-full bg-black/65 text-white disabled:opacity-50"
+                  aria-label="Remove saved photo"
+                >
+                  <X className="size-3.5" />
+                </button>
               </li>
             ))}
           </ul>
         ) : (
           <p className="text-sm text-[var(--color-muted)]">No photos saved yet.</p>
         )}
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--color-border)] bg-white/95 p-4 backdrop-blur">
-        <div className="mx-auto flex max-w-lg flex-col gap-2">
-          <button
-            type="button"
-            disabled={!canUpload}
-            onClick={handleUpload}
-            className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 text-sm font-semibold text-white hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Upload className="size-4" />
-            {uploading
-              ? "Uploading…"
-              : hasPending
-                ? `Upload ${pendingFiles.length} photo${pendingFiles.length === 1 ? "" : "s"}`
-                : "Upload"}
-          </button>
-          <button
-            type="button"
-            disabled={!canClose || closing}
-            onClick={handleSaveAndClose}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Check className="size-4" />
-            {closing ? "Closing…" : "Save & close"}
-          </button>
-        </div>
       </div>
     </div>
   );

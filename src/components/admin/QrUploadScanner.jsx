@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Camera, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 function isUploadUrl(text) {
   try {
@@ -121,19 +120,6 @@ export default function QrUploadScanner({ open, onClose, onScanUrl }) {
               Point your camera at the upload QR code on the product page.
             </p>
           )}
-        </div>
-
-        <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              stopScanner();
-              onClose();
-            }}
-          >
-            Cancel
-          </Button>
         </div>
       </div>
     </div>

@@ -44,3 +44,12 @@ export async function appendUploadSessionImages(token, urls, adminId) {
   await setDocument(COLLECTION, token, { images: merged });
   return { ...session, images: merged };
 }
+
+export async function removeUploadSessionImage(token, url, adminId) {
+  const session = await getUploadSession(token);
+  if (!session || session.adminId !== adminId) return null;
+
+  const images = (session.images || []).filter((entry) => entry !== url);
+  await setDocument(COLLECTION, token, { images });
+  return { ...session, images };
+}

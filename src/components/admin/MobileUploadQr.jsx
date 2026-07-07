@@ -119,7 +119,7 @@ export default function MobileUploadQr({
               <p className="text-xs text-[var(--color-muted)]">
                 1. Open upload page on your phone
                 <br />
-                2. Choose photos, tap Upload, then Save &amp; close
+                2. Take or choose a photo — it auto-saves and closes
                 <br />
                 3. Images appear here automatically
               </p>
