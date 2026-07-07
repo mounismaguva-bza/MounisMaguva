@@ -27,7 +27,7 @@ export function getDisplayImageSrc(src, fallback, variant = "full", cacheKey) {
     url = toCloudinaryDeliveryUrl(normalized, variant);
   }
 
-  if (cacheKey) {
+  if (cacheKey && isCloudinaryUrl(url)) {
     const separator = url.includes("?") ? "&" : "?";
     return `${url}${separator}v=${encodeURIComponent(String(cacheKey))}`;
   }
