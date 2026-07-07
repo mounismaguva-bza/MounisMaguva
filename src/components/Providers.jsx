@@ -9,7 +9,9 @@ import LaunchHomeEntrance from "@/components/launch/LaunchHomeEntrance";
 export default function Providers({ children }) {
   const pathname = usePathname();
   const hideFloatingActions =
-    pathname === "/launch" || pathname.startsWith("/launch/");
+    pathname === "/launch" ||
+    pathname.startsWith("/launch/") ||
+    pathname.startsWith("/admin/mobile-upload/");
 
   return (
     <CartProvider>

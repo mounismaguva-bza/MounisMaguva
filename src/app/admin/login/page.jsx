@@ -21,8 +21,19 @@ function mapAuthError(code) {
   }
 }
 
+function safeNextPath(value) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/admin";
+  if (!value.startsWith("/admin")) return "/admin";
+  return value;
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [nextPath] = useState(() => {
+    if (typeof window === "undefined") return "/admin";
+    const params = new URLSearchParams(window.location.search);
+    return safeNextPath(params.get("next"));
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,11 +45,11 @@ export default function AdminLoginPage() {
   useEffect(() => {
     fetch("/api/admin/auth/session", { credentials: "include" })
       .then((res) => {
-        if (res.ok) router.replace("/admin");
+        if (res.ok) router.replace(nextPath);
       })
       .catch(() => {})
       .finally(() => setCheckingSession(false));
-  }, [router]);
+  }, [router, nextPath]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -66,7 +77,7 @@ export default function AdminLoginPage() {
       }
 
       await signOut(auth).catch(() => {});
-      router.replace("/admin");
+      router.replace(nextPath);
       router.refresh();
     } catch (submitError) {
       const code = submitError?.code;

@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import AdminImageUploadButtons from "@/components/admin/AdminImageUploadButtons";
+import MobileUploadQr from "@/components/admin/MobileUploadQr";
 import {
   compressImageForUpload,
-  IMAGE_UPLOAD_ACCEPT,
   isAcceptedImageFile,
 } from "@/lib/compress-image";
 import { prepareAndUploadImage } from "@/lib/cloudinary-client";
@@ -24,7 +25,7 @@ function getClipboardImageFiles(clipboardData) {
   return files;
 }
 
-export default function ColorImagesEditor({ colors, colorImages, onChange }) {
+export default function ColorImagesEditor({ colors, colorImages, onChange, productId }) {
   const [uploadingColor, setUploadingColor] = useState(null);
   const [uploadError, setUploadError] = useState("");
 
@@ -102,6 +103,19 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
     uploadFilesForColor(color, files);
   }
 
+  function mergeSessionImages(color, sessionImages) {
+    const existing = colorImages[color] || [];
+    const merged = [...existing];
+    for (const url of sessionImages) {
+      if (merged.length >= MAX_IMAGES_PER_COLOR) break;
+      const normalized = normalizeProductImageSrc(url, null);
+      if (normalized && !merged.includes(normalized)) {
+        merged.push(normalized);
+      }
+    }
+    onChange(sanitizeColorImages({ ...colorImages, [color]: merged }));
+  }
+
   return (
     <fieldset className="space-y-4">
       <legend className="text-sm font-medium">Images per color</legend>
@@ -172,22 +186,22 @@ export default function ColorImagesEditor({ colors, colorImages, onChange }) {
               </p>
             ) : (
               <>
-                <label className="inline-flex w-full cursor-pointer items-center justify-center rounded-lg border border-dashed border-[var(--color-primary)]/40 bg-white px-3 py-2 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-cream)]/50">
-                  {uploadingColor === color ? "Uploading..." : "Choose images to upload"}
-                  <input
-                    type="file"
-                    accept={IMAGE_UPLOAD_ACCEPT}
-                    multiple
-                    className="sr-only"
-                    disabled={uploadingColor === color}
-                    onChange={(e) => {
-                      uploadFilesForColor(color, e.target.files);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
+                <MobileUploadQr
+                  color={color}
+                  productId={productId}
+                  disabled={uploadingColor === color}
+                  onImagesSynced={(sessionImages) => mergeSessionImages(color, sessionImages)}
+                />
+                <AdminImageUploadButtons
+                  disabled={uploadingColor === color}
+                  uploading={uploadingColor === color}
+                  uploadingLabel="Uploading..."
+                  chooseLabel="Choose images to upload"
+                  cameraLabel="Take photo"
+                  onFiles={(files) => uploadFilesForColor(color, files)}
+                />
                 <p className="mt-2 text-[10px] text-[var(--color-muted)]">
-                  Tip: click this color box, then paste a copied image with Ctrl+V.
+                  On mobile: tap Show upload QR code, scan it, then upload photos on the upload page.
                 </p>
               </>
             )}

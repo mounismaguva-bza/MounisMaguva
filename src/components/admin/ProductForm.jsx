@@ -452,6 +452,7 @@ export default function ProductForm({ mode = "create", product }) {
       <ColorImagesEditor
         colors={values.colors}
         colorImages={values.colorImages}
+        productId={product?.id}
         onChange={(colorImages) => setValues((v) => ({ ...v, colorImages }))}
       />
 
