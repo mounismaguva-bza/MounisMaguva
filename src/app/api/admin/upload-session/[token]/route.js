@@ -6,6 +6,8 @@ import {
   removeUploadSessionImage,
 } from "@/lib/upload-session";
 
+const MOBILE_UPLOAD_MAX_IMAGES = 1;
+
 export async function GET(request, { params }) {
   const { error, admin } = await requireAdminApi(request);
   if (error) return error;
@@ -44,7 +46,24 @@ export async function POST(request, { params }) {
   }
 
   try {
-    const session = await appendUploadSessionImages(token, urls, admin.uid);
+    const existing = await getUploadSession(token);
+    if (!existing || existing.adminId !== admin.uid) {
+      return NextResponse.json({ error: "Upload session not found." }, { status: 404 });
+    }
+
+    const currentCount = existing.images?.length || 0;
+    if (currentCount >= MOBILE_UPLOAD_MAX_IMAGES) {
+      return NextResponse.json(
+        { error: "Only one photo is allowed per upload link." },
+        { status: 400 },
+      );
+    }
+
+    const session = await appendUploadSessionImages(
+      token,
+      urls.slice(0, MOBILE_UPLOAD_MAX_IMAGES - currentCount),
+      admin.uid,
+    );
     if (!session) {
       return NextResponse.json({ error: "Upload session not found." }, { status: 404 });
     }

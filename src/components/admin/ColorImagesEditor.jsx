@@ -197,7 +197,6 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
                   uploading={uploadingColor === color}
                   uploadingLabel="Uploading..."
                   chooseLabel="Choose images to upload"
-                  cameraLabel="Take photo"
                   onFiles={(files) => uploadFilesForColor(color, files)}
                 />
                 <p className="mt-2 text-[10px] text-[var(--color-muted)]">

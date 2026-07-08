@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImagePlus, RefreshCw, X } from "lucide-react";
+import { CheckCircle2, ImagePlus, RefreshCw, X } from "lucide-react";
 import {
   compressImageForUpload,
   IMAGE_UPLOAD_ACCEPT,
@@ -11,17 +10,17 @@ import {
 } from "@/lib/compress-image";
 import { prepareAndUploadImage } from "@/lib/cloudinary-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
-import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
 
-const AUTO_CLOSE_MS = 900;
+const MOBILE_UPLOAD_MAX_IMAGES = 1;
+const AUTO_CLOSE_MS = 3000;
 
 export default function MobileUploadPage({ token, initialSession }) {
-  const router = useRouter();
   const [session, setSession] = useState(initialSession);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [closing, setClosing] = useState(false);
+  const [finished, setFinished] = useState(null);
   const closeTimerRef = useRef(null);
 
   const refreshSession = useCallback(async () => {
@@ -34,9 +33,10 @@ export default function MobileUploadPage({ token, initialSession }) {
   }, [token]);
 
   useEffect(() => {
+    if (closing) return undefined;
     const id = window.setInterval(refreshSession, 4000);
     return () => window.clearInterval(id);
-  }, [refreshSession]);
+  }, [refreshSession, closing]);
 
   useEffect(() => {
     return () => {
@@ -44,36 +44,30 @@ export default function MobileUploadPage({ token, initialSession }) {
     };
   }, []);
 
-  const closePage = useCallback(() => {
+  const finishPage = useCallback((uploaded) => {
     setClosing(true);
+    setFinished(uploaded ? "uploaded" : "closed");
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
     if (typeof window !== "undefined") {
-      if (window.opener && !window.opener.closed) {
-        window.close();
-        return;
-      }
-      if (window.history.length > 1) {
-        router.back();
-        return;
-      }
+      window.close();
     }
-    router.push("/admin/products");
-  }, [router]);
+  }, []);
 
   const scheduleAutoClose = useCallback(() => {
     if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
     closeTimerRef.current = window.setTimeout(() => {
-      closePage();
+      finishPage(true);
     }, AUTO_CLOSE_MS);
-  }, [closePage]);
+  }, [finishPage]);
 
   async function uploadFiles(fileList) {
-    const files = Array.from(fileList || []).filter(isAcceptedImageFile);
-    if (!files.length || uploading) return;
+    const file = Array.from(fileList || []).filter(isAcceptedImageFile)[0];
+    if (!file || uploading || closing) return;
 
     const count = session.images?.length || 0;
-    const remaining = MAX_IMAGES_PER_COLOR - count;
-    if (remaining <= 0) {
-      setError(`Maximum ${MAX_IMAGES_PER_COLOR} photos reached for this color.`);
+    if (count >= MOBILE_UPLOAD_MAX_IMAGES) {
+      setError("Only one photo is allowed per upload link.");
+      scheduleAutoClose();
       return;
     }
 
@@ -82,35 +76,25 @@ export default function MobileUploadPage({ token, initialSession }) {
     setUploading(true);
 
     try {
-      const toUpload = files.slice(0, remaining);
-      const uploads = await Promise.all(
-        toUpload.map((file) =>
-          prepareAndUploadImage(file, {
-            folder: "mounis-maguva/products",
-            prepare: compressImageForUpload,
-          }),
-        ),
-      );
+      const result = await prepareAndUploadImage(file, {
+        folder: "mounis-maguva/products",
+        prepare: compressImageForUpload,
+      });
 
-      const urls = uploads
-        .map((item) => normalizeProductImageSrc(item.url, null))
-        .filter(Boolean);
-
-      if (!urls.length) throw new Error("Upload failed");
+      const url = normalizeProductImageSrc(result.url, null);
+      if (!url) throw new Error("Upload failed");
 
       const response = await fetch(`/api/admin/upload-session/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ urls }),
+        body: JSON.stringify({ urls: [url] }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Could not save uploaded images");
+      if (!response.ok) throw new Error(data.error || "Could not save uploaded image");
 
       setSession(data);
-      setStatus(
-        `${urls.length} photo${urls.length === 1 ? "" : "s"} saved. Closing…`,
-      );
+      setStatus("Photo saved. Closing in 3 seconds…");
       scheduleAutoClose();
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Upload failed");
@@ -138,6 +122,26 @@ export default function MobileUploadPage({ token, initialSession }) {
   }
 
   const images = session.images || [];
+  const atLimit = images.length >= MOBILE_UPLOAD_MAX_IMAGES;
+  const uploadDisabled = uploading || closing || atLimit;
+
+  if (finished) {
+    return (
+      <div className="mx-auto flex min-h-[100dvh] max-w-lg flex-col items-center justify-center gap-4 px-4 py-8 text-center">
+        {finished === "uploaded" ? (
+          <CheckCircle2 className="size-14 text-emerald-600" aria-hidden />
+        ) : null}
+        <h1 className="font-[family-name:var(--font-display)] text-2xl text-[var(--color-primary)]">
+          {finished === "uploaded" ? "Upload complete" : "Closed"}
+        </h1>
+        <p className="max-w-xs text-sm leading-relaxed text-[var(--color-muted)]">
+          {finished === "uploaded"
+            ? "Your photo was saved. You can close this tab and return to the product form on your other device."
+            : "You can close this tab now."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-[100dvh] max-w-lg flex-col gap-5 px-4 py-6">
@@ -150,13 +154,13 @@ export default function MobileUploadPage({ token, initialSession }) {
             {session.color}
           </h1>
           <p className="mt-2 text-sm text-[var(--color-muted)]">
-            Take or choose a photo — it saves automatically and this page closes.
+            Take or choose one photo — it saves automatically and this page closes in 3 seconds.
           </p>
         </div>
         <button
           type="button"
           disabled={uploading || closing}
-          onClick={closePage}
+          onClick={() => finishPage(false)}
           className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-[var(--color-muted)] hover:bg-[var(--color-cream)]/60 disabled:opacity-50"
           aria-label="Cancel and close"
         >
@@ -164,42 +168,47 @@ export default function MobileUploadPage({ token, initialSession }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label
-          className={`inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white hover:bg-[var(--color-primary-dark)] ${uploading ? "pointer-events-none opacity-60" : ""}`}
-        >
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="sr-only"
-            disabled={uploading || closing}
-            onChange={(e) => {
-              uploadFiles(e.target.files);
-              e.target.value = "";
-            }}
-          />
-          <ImagePlus className="size-4" />
-          Take photo
-        </label>
-        <label
-          className={`inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-primary)] bg-white px-4 py-3 text-sm font-semibold text-[var(--color-primary)] hover:bg-[var(--color-cream)]/50 ${uploading ? "pointer-events-none opacity-60" : ""}`}
-        >
-          <input
-            type="file"
-            accept={IMAGE_UPLOAD_ACCEPT}
-            multiple
-            className="sr-only"
-            disabled={uploading || closing}
-            onChange={(e) => {
-              uploadFiles(e.target.files);
-              e.target.value = "";
-            }}
-          />
-          <ImagePlus className="size-4" />
-          Choose images
-        </label>
-      </div>
+      {atLimit ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          One photo uploaded. This page will close shortly.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <label
+            className={`inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white hover:bg-[var(--color-primary-dark)] ${uploadDisabled ? "pointer-events-none opacity-60" : ""}`}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              disabled={uploadDisabled}
+              onChange={(e) => {
+                uploadFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <ImagePlus className="size-4" />
+            Take photo
+          </label>
+          <label
+            className={`inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-primary)] bg-white px-4 py-3 text-sm font-semibold text-[var(--color-primary)] hover:bg-[var(--color-cream)]/50 ${uploadDisabled ? "pointer-events-none opacity-60" : ""}`}
+          >
+            <input
+              type="file"
+              accept={IMAGE_UPLOAD_ACCEPT}
+              className="sr-only"
+              disabled={uploadDisabled}
+              onChange={(e) => {
+                uploadFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <ImagePlus className="size-4" />
+            Choose image
+          </label>
+        </div>
+      )}
 
       {uploading ? (
         <p className="text-sm font-medium text-[var(--color-primary)]">Uploading and saving…</p>

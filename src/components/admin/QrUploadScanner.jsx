@@ -89,8 +89,17 @@ export default function QrUploadScanner({ open, onClose, onScanUrl }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end bg-black/70 sm:items-center sm:p-4">
-      <div className="w-full overflow-hidden rounded-t-2xl border border-white/10 bg-[#1a0505] text-white sm:max-w-md sm:rounded-2xl">
+    <div
+      className="fixed inset-0 z-[120] flex items-end bg-black/70 sm:items-center sm:p-4"
+      onClick={() => {
+        stopScanner();
+        onClose();
+      }}
+    >
+      <div
+        className="w-full overflow-hidden rounded-t-2xl border border-white/10 bg-[#1a0505] text-white sm:max-w-md sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <p className="text-sm font-medium">Scan upload QR code</p>
           <button

@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { ExternalLink, QrCode } from "lucide-react";
-import QrUploadScanner, { QrScanButton } from "@/components/admin/QrUploadScanner";
-import { isMobileCameraDevice } from "@/lib/device";
+import { ExternalLink, QrCode, X } from "lucide-react";
 
 function buildUploadPath(token) {
   return `/admin/mobile-upload/${token}`;
@@ -20,7 +18,6 @@ export default function MobileUploadQr({
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [scannerOpen, setScannerOpen] = useState(false);
   const lastSyncedRef = useRef(0);
   const [origin] = useState(() =>
     typeof window !== "undefined" ? window.location.origin : "",
@@ -77,13 +74,9 @@ export default function MobileUploadQr({
     return () => window.clearInterval(id);
   }, [sessionToken, onImagesSynced]);
 
-  function handleScanUrl(url) {
-    try {
-      const scanned = new URL(url);
-      window.location.href = `${scanned.pathname}${scanned.search}`;
-    } catch {
-      window.location.href = url;
-    }
+  function closeSession() {
+    setSession(null);
+    setError("");
   }
 
   return (
@@ -96,6 +89,16 @@ export default function MobileUploadQr({
             Scan the QR code with your phone camera to open the upload page for this color.
           </p>
         </div>
+        {session ? (
+          <button
+            type="button"
+            onClick={closeSession}
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[var(--color-muted)] hover:bg-[var(--color-cream)] hover:text-[var(--color-text)]"
+            aria-label="Close QR code"
+          >
+            <X className="size-4" />
+          </button>
+        ) : null}
       </div>
 
       {!session ? (
@@ -119,7 +122,7 @@ export default function MobileUploadQr({
               <p className="text-xs text-[var(--color-muted)]">
                 1. Open upload page on your phone
                 <br />
-                2. Take or choose a photo — it auto-saves and closes
+                2. Take or choose one photo — it auto-saves and closes in 3 seconds
                 <br />
                 3. Images appear here automatically
               </p>
@@ -133,32 +136,29 @@ export default function MobileUploadQr({
                 <ExternalLink className="size-4" />
                 Open upload page
               </Link>
-              {isMobileCameraDevice() ? (
-                <QrScanButton
-                  disabled={disabled}
-                  onClick={() => setScannerOpen(true)}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-dark)] disabled:opacity-60 sm:w-auto"
-                />
-              ) : null}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={createSession}
-            className="text-xs text-[var(--color-primary)] hover:underline"
-          >
-            Refresh QR code
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={createSession}
+              className="text-xs text-[var(--color-primary)] hover:underline"
+            >
+              Refresh QR code
+            </button>
+            <button
+              type="button"
+              onClick={closeSession}
+              className="inline-flex items-center gap-1 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
+            >
+              <X className="size-3.5" />
+              Close
+            </button>
+          </div>
         </div>
       )}
 
       {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
-
-      <QrUploadScanner
-        open={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        onScanUrl={handleScanUrl}
-      />
     </div>
   );
 }
