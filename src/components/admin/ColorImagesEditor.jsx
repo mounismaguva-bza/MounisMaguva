@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { RotateCw } from "lucide-react";
 import AdminImageUploadButtons from "@/components/admin/AdminImageUploadButtons";
 import MobileUploadQr from "@/components/admin/MobileUploadQr";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/lib/compress-image";
 import { prepareAndUploadImage } from "@/lib/cloudinary-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
+import { rotateImageFromUrl } from "@/lib/rotate-image";
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
 import { sanitizeColorImages } from "@/lib/sanitize-color-images";
 
@@ -27,6 +29,7 @@ function getClipboardImageFiles(clipboardData) {
 
 export default function ColorImagesEditor({ colors, colorImages, onChange, productId }) {
   const [uploadingColor, setUploadingColor] = useState(null);
+  const [rotatingKey, setRotatingKey] = useState(null);
   const [uploadError, setUploadError] = useState("");
 
   if (!colors.length) {
@@ -116,6 +119,38 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
     onChange(sanitizeColorImages({ ...colorImages, [color]: merged }));
   }
 
+  async function rotateImage(color, url, index) {
+    const key = `${color}-${index}`;
+    if (rotatingKey || uploadingColor) return;
+
+    setUploadError("");
+    setRotatingKey(key);
+
+    try {
+      const rotatedFile = await rotateImageFromUrl(
+        normalizeProductImageSrc(url, url),
+        90,
+        `${color}-${index + 1}`,
+      );
+      const result = await prepareAndUploadImage(rotatedFile, {
+        folder: "mounis-maguva/products",
+        prepare: compressImageForUpload,
+      });
+      const newUrl = normalizeProductImageSrc(result.url, null);
+      if (!newUrl) throw new Error("Rotation upload failed");
+
+      const list = [...(colorImages[color] || [])];
+      const position = list.indexOf(url);
+      if (position === -1) return;
+      list[position] = newUrl;
+      onChange(sanitizeColorImages({ ...colorImages, [color]: list }));
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "Could not rotate image");
+    } finally {
+      setRotatingKey(null);
+    }
+  }
+
   return (
     <fieldset className="space-y-4">
       <legend className="text-sm font-medium">Images per color</legend>
@@ -165,13 +200,27 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
                       <span className="text-[10px] text-[var(--color-muted)]">
                         Image {index + 1}
                       </span>
-                      <button
-                        type="button"
-                        className="shrink-0 text-xs text-red-600 hover:underline"
-                        onClick={() => removeImage(color, item.raw)}
-                      >
-                        Remove
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={Boolean(rotatingKey) || uploadingColor === color}
+                          onClick={() => rotateImage(color, item.raw, index)}
+                          className="inline-flex shrink-0 items-center gap-1 text-xs text-[var(--color-primary)] hover:underline disabled:opacity-50"
+                        >
+                          <RotateCw
+                            className={`size-3 ${rotatingKey === `${color}-${index}` ? "animate-spin" : ""}`}
+                          />
+                          {rotatingKey === `${color}-${index}` ? "Rotating…" : "Rotate"}
+                        </button>
+                        <button
+                          type="button"
+                          className="shrink-0 text-xs text-red-600 hover:underline"
+                          disabled={Boolean(rotatingKey)}
+                          onClick={() => removeImage(color, item.raw)}
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -200,7 +249,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
                   onFiles={(files) => uploadFilesForColor(color, files)}
                 />
                 <p className="mt-2 text-[10px] text-[var(--color-muted)]">
-                  Photos auto-save on mobile and sync here. Tap X on a saved photo to remove it.
+                  Use Rotate to fix photo orientation. Save the product to update the shop and product pages.
                 </p>
               </>
             )}
