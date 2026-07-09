@@ -5,6 +5,7 @@ import {
   getUploadSession,
   removeUploadSessionImage,
 } from "@/lib/upload-session";
+import { deleteImagesFromR2 } from "@/lib/r2";
 
 const MOBILE_UPLOAD_MAX_IMAGES = 1;
 
@@ -95,6 +96,8 @@ export async function DELETE(request, { params }) {
     if (!session) {
       return NextResponse.json({ error: "Upload session not found." }, { status: 404 });
     }
+
+    await deleteImagesFromR2([url]);
 
     return NextResponse.json({
       token,

@@ -1,5 +1,5 @@
-/** Target upload size — files over this are compressed before upload. */
-export const IMAGE_UPLOAD_TARGET_BYTES = 5 * 1024 * 1024;
+/** Target upload size — keep files small for fast uploads. */
+export const IMAGE_UPLOAD_TARGET_BYTES = 900 * 1024;
 
 /** Hard reject limit for very large source files. */
 export const IMAGE_UPLOAD_MAX_BYTES = 25 * 1024 * 1024;
@@ -37,9 +37,9 @@ async function convertHeicToJpegBlob(file) {
   return blob;
 }
 
-const MAX_DIMENSION = 4000;
-const MIN_DIMENSION = 1200;
-const EXPORT_QUALITY = 0.95;
+const MAX_DIMENSION = 1600;
+const MIN_DIMENSION = 800;
+const EXPORT_QUALITY = 0.78;
 
 function stripExtension(name) {
   return String(name || "image").replace(/\.[^.]+$/, "") || "image";
@@ -133,10 +133,10 @@ async function renderToWebP(source, width, height, canvas, quality = EXPORT_QUAL
 }
 
 /**
- * Hybrid upload prep:
- * - HEIC/HEIF → always converted to WebP
- * - Other formats ≤ 5MB → original file unchanged
- * - Other formats > 5MB → resize only (no crop) at high quality until under 5MB
+ * Fast upload prep for R2:
+ * - Always converts to WebP (smaller + consistent)
+ * - Caps longest side at 2000px
+ * - Targets ~1.5MB for quick direct uploads
  * @param {File | Blob} file
  * @returns {Promise<File>}
  */
@@ -152,16 +152,20 @@ export async function compressImageForUpload(file) {
     );
   }
 
-  const fromHeic = isHeicFile(file);
   const baseName = stripExtension(file instanceof File ? file.name : "image");
   let working = file;
 
-  if (fromHeic) {
+  if (isHeicFile(file)) {
     const jpegBlob = await convertHeicToJpegBlob(file);
     working = fileFromBlob(jpegBlob, `${baseName}.jpg`, "image/jpeg");
   }
 
-  if (!fromHeic && working.size <= IMAGE_UPLOAD_TARGET_BYTES && working instanceof File) {
+  // Already a small WebP — skip re-encode.
+  if (
+    working instanceof File &&
+    working.type === "image/webp" &&
+    working.size <= IMAGE_UPLOAD_TARGET_BYTES
+  ) {
     return working;
   }
 
@@ -176,15 +180,16 @@ export async function compressImageForUpload(file) {
       IMAGE_UPLOAD_TARGET_BYTES,
     );
 
-    for (let attempt = 0; attempt < 5; attempt += 1) {
-      const blob = await renderToWebP(source, width, height, canvas, EXPORT_QUALITY);
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const quality = Math.max(0.62, EXPORT_QUALITY - attempt * 0.08);
+      const blob = await renderToWebP(source, width, height, canvas, quality);
       if (blob.size <= IMAGE_UPLOAD_TARGET_BYTES) {
         return fileFromBlob(blob, `${baseName}.webp`, "image/webp");
       }
 
       if (width <= MIN_DIMENSION || height <= MIN_DIMENSION) break;
 
-      const scale = Math.sqrt(IMAGE_UPLOAD_TARGET_BYTES / blob.size) * 0.95;
+      const scale = Math.sqrt(IMAGE_UPLOAD_TARGET_BYTES / blob.size) * 0.9;
       width = Math.max(MIN_DIMENSION, Math.round(width * scale));
       height = Math.max(MIN_DIMENSION, Math.round(height * scale));
     }
@@ -194,12 +199,12 @@ export async function compressImageForUpload(file) {
       Math.max(width, MIN_DIMENSION),
       Math.max(height, MIN_DIMENSION),
       canvas,
-      EXPORT_QUALITY,
+      0.62,
     );
 
     if (blob.size > IMAGE_UPLOAD_TARGET_BYTES) {
       throw new Error(
-        "Could not reduce this image under 5MB while keeping quality. Try a slightly smaller photo.",
+        "Could not reduce this image enough for a fast upload. Try a slightly smaller photo.",
       );
     }
 

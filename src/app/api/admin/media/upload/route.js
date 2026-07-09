@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { COLLECTIONS, dbNow, setDocument } from "@/lib/firestore";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { uploadImageToR2 } from "@/lib/r2";
 import { requireAdminApi, jsonError } from "@/lib/admin-api";
 
 export async function POST(request) {
@@ -19,9 +19,10 @@ export async function POST(request) {
 
     const mediaId = randomUUID();
     const bytes = Buffer.from(await file.arrayBuffer());
-    const uploaded = await uploadImageToCloudinary(bytes, {
+    const uploaded = await uploadImageToR2(bytes, {
       folder: "mounis-maguva/media",
       filename: mediaId,
+      contentType: file.type || "image/jpeg",
     });
 
     const usageTags = String(usageTagsRaw || "")

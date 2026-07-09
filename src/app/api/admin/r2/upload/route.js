@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { Readable } from "node:stream";
 import { requireAdminApi, jsonError } from "@/lib/admin-api";
 import { IMAGE_UPLOAD_TARGET_BYTES } from "@/lib/compress-image";
-import { uploadImageToR2 } from "@/lib/r2";
+import { ensureR2Cors, uploadImageToR2 } from "@/lib/r2";
 
 /** Small buffer above client compress target for edge cases. */
 const MAX_BYTES = IMAGE_UPLOAD_TARGET_BYTES + 512 * 1024;
@@ -15,12 +16,14 @@ const ALLOWED_TYPES = new Set([
   "image/heif",
 ]);
 
-/** @deprecated Prefer /api/admin/r2/upload — kept so old clients still work. */
 export async function POST(request) {
   const { error } = await requireAdminApi(request);
   if (error) return error;
 
   try {
+    // Best-effort: unlock direct browser uploads for later requests.
+    void ensureR2Cors();
+
     const form = await request.formData();
     const file = form.get("file");
     const folder = String(form.get("folder") || "mounis-maguva/products").trim();
@@ -43,10 +46,12 @@ export async function POST(request) {
       );
     }
 
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const uploaded = await uploadImageToR2(bytes, {
+    // Stream file → R2 (avoid buffering a second full Buffer copy).
+    const nodeStream = Readable.fromWeb(file.stream());
+    const uploaded = await uploadImageToR2(nodeStream, {
       folder,
-      contentType: file.type || "image/jpeg",
+      contentType: file.type || "image/webp",
+      contentLength: file.size,
     });
 
     return NextResponse.json({

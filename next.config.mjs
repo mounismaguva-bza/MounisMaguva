@@ -1,3 +1,15 @@
+function r2PublicHostname() {
+  const value = process.env.R2_PUBLIC_URL?.trim();
+  if (!value) return null;
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return null;
+  }
+}
+
+const r2Host = r2PublicHostname();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
@@ -49,6 +61,22 @@ const nextConfig = {
         protocol: "https",
         hostname: "res.cloudinary.com",
       },
+      {
+        protocol: "https",
+        hostname: "pub-821ee3ea887e4f29842aa128333ad07d.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.r2.dev",
+      },
+      ...(r2Host
+        ? [
+            {
+              protocol: "https",
+              hostname: r2Host,
+            },
+          ]
+        : []),
     ],
   },
 };

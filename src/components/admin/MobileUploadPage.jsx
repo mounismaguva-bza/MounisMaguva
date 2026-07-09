@@ -8,7 +8,7 @@ import {
   IMAGE_UPLOAD_ACCEPT,
   isAcceptedImageFile,
 } from "@/lib/compress-image";
-import { prepareAndUploadImage } from "@/lib/cloudinary-client";
+import { prepareAndUploadImage } from "@/lib/upload-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 
 const MOBILE_UPLOAD_MAX_IMAGES = 1;

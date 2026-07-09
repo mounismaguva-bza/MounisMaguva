@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { RotateCw } from "lucide-react";
 import AdminImageUploadButtons from "@/components/admin/AdminImageUploadButtons";
@@ -9,7 +8,7 @@ import {
   compressImageForUpload,
   isAcceptedImageFile,
 } from "@/lib/compress-image";
-import { prepareAndUploadImage } from "@/lib/cloudinary-client";
+import { prepareAndUploadImage, deleteUploadedImages } from "@/lib/upload-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 import { rotateImageFromUrl } from "@/lib/rotate-image";
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
@@ -40,7 +39,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
     );
   }
 
-  function removeImage(color, url) {
+  async function removeImage(color, url) {
     const next = (colorImages[color] || []).filter((u) => u !== url);
     const updated = { ...colorImages };
     if (next.length) {
@@ -49,6 +48,11 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
       delete updated[color];
     }
     onChange(sanitizeColorImages(updated));
+    try {
+      await deleteUploadedImages(url);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "Removed from product, but storage delete failed");
+    }
   }
 
   async function uploadFilesForColor(color, rawFiles) {
@@ -144,6 +148,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
       if (position === -1) return;
       list[position] = newUrl;
       onChange(sanitizeColorImages({ ...colorImages, [color]: list }));
+      void deleteUploadedImages(url).catch(() => {});
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "Could not rotate image");
     } finally {
@@ -188,12 +193,13 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
                     className="overflow-hidden rounded-md border border-[var(--color-border)] bg-white"
                   >
                     <div className="relative aspect-square bg-[var(--color-surface)]">
-                      <Image
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={item.safe}
                         alt={`${color} ${index + 1}`}
-                        fill
-                        className="object-contain p-2"
-                        sizes="120px"
+                        className="absolute inset-0 h-full w-full object-contain p-2"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="flex items-center justify-between gap-1 px-2 py-1.5">

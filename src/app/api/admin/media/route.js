@@ -10,6 +10,7 @@ import {
 } from "@/lib/firestore";
 import { normalizeMediaInput } from "@/lib/admin-models";
 import { requireAdminApi, jsonError } from "@/lib/admin-api";
+import { deleteImagesFromR2 } from "@/lib/r2";
 
 export async function GET(request) {
   const { error } = await requireAdminApi(request);
@@ -58,6 +59,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     await deleteDocument(COLLECTIONS.media, id);
+    await deleteImagesFromR2([existing.url, existing.storagePath]);
     return NextResponse.json({ ok: true });
   } catch (routeError) {
     return jsonError(routeError);

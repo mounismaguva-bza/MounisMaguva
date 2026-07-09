@@ -8,6 +8,7 @@ import {
   getDocument,
   setDocument,
 } from "@/lib/firestore";
+import { deleteImagesFromR2 } from "@/lib/r2";
 
 export async function GET(request, { params }) {
   const { error } = await requireAdminApi(request);
@@ -30,6 +31,7 @@ export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
+    const existing = await getDocument(COLLECTIONS.heroSlides, id);
     const data = normalizeHeroSlideInput(body);
     if (!data.title || !data.image) {
       return NextResponse.json(
@@ -43,6 +45,11 @@ export async function PUT(request, { params }) {
       id,
       updatedAt: dbNow(),
     });
+
+    if (existing?.image && existing.image !== data.image) {
+      await deleteImagesFromR2([existing.image]);
+    }
+
     return NextResponse.json({ ok: true });
   } catch (routeError) {
     return jsonError(routeError);
@@ -54,7 +61,11 @@ export async function DELETE(request, { params }) {
   if (error) return error;
   try {
     const { id } = await params;
+    const existing = await getDocument(COLLECTIONS.heroSlides, id);
     await deleteDocument(COLLECTIONS.heroSlides, id);
+    if (existing?.image) {
+      await deleteImagesFromR2([existing.image]);
+    }
     return NextResponse.json({ ok: true });
   } catch (routeError) {
     return jsonError(routeError);

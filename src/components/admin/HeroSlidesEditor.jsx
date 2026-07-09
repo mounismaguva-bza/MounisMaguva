@@ -7,7 +7,7 @@ import {
   IMAGE_UPLOAD_ACCEPT,
   isAcceptedImageFile,
 } from "@/lib/compress-image";
-import { prepareAndUploadImage } from "@/lib/cloudinary-client";
+import { prepareAndUploadImage } from "@/lib/upload-client";
 import { MAX_HERO_SLIDES } from "@/lib/constants";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 

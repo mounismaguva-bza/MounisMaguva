@@ -12,6 +12,16 @@ import {
 export const WARMED_IMAGES_KEY = "mm:warmed-images";
 const MAX_WARMED_IMAGES = 400;
 
+function isR2PublicUrl(url) {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host.endsWith(".r2.dev") || host.includes("r2.cloudflarestorage.com");
+  } catch {
+    return false;
+  }
+}
+
 /** Stable Cloudinary delivery URL for display and caching. */
 export function getDisplayImageSrc(src, fallback, variant = "full", cacheKey) {
   const resolvedFallback =
@@ -36,7 +46,8 @@ export function getDisplayImageSrc(src, fallback, variant = "full", cacheKey) {
 }
 
 export function shouldBypassNextImageOptimizer(src, variant = "full") {
-  return isCloudinaryUrl(getDisplayImageSrc(src, "", variant));
+  const url = getDisplayImageSrc(src, "", variant);
+  return isCloudinaryUrl(url) || isR2PublicUrl(url);
 }
 
 function getWarmedImages() {
