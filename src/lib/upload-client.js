@@ -48,12 +48,58 @@ export async function prepareAndUploadImage(file, options = {}) {
   return uploadViaProxy(prepared, folder);
 }
 
-async function fetchR2Sign(folder, contentType, filename) {
+/**
+ * Replace an existing R2 image in place (same URL). Use for rotation edits.
+ * @param {File} file
+ * @param {string} existingUrl
+ * @param {{ folder?: string; prepare?: (file: File) => Promise<File> }} [options]
+ */
+export async function overwriteImageAtUrl(file, existingUrl, options = {}) {
+  const prepare = options.prepare ?? ((value) => Promise.resolve(value));
+  const prepared = await prepare(file);
+  const contentType = prepared.type || "image/webp";
+
+  const signed = await fetchR2Sign(
+    options.folder || "mounis-maguva/products",
+    contentType,
+    undefined,
+    existingUrl,
+  );
+
+  try {
+    const uploadResponse = await fetch(signed.uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": contentType,
+      },
+      body: prepared,
+    });
+
+    if (uploadResponse.ok) {
+      return {
+        ok: true,
+        url: signed.url,
+        publicId: signed.publicId,
+      };
+    }
+  } catch {
+    /* fall through to proxy */
+  }
+
+  return overwriteViaProxy(prepared, existingUrl, options.folder);
+}
+
+async function fetchR2Sign(folder, contentType, filename, replaceUrl) {
   const response = await fetch("/api/admin/r2/sign", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ folder, contentType, filename }),
+    body: JSON.stringify({
+      folder,
+      contentType,
+      ...(filename ? { filename } : {}),
+      ...(replaceUrl ? { replaceUrl } : {}),
+    }),
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -66,6 +112,30 @@ async function uploadViaProxy(prepared, folder) {
   const formData = new FormData();
   formData.append("file", prepared);
   formData.append("folder", folder);
+
+  const response = await fetch("/api/admin/r2/upload", {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.error || data?.message || "Upload failed");
+  }
+
+  return {
+    ok: true,
+    url: data.url,
+    publicId: data.publicId,
+  };
+}
+
+async function overwriteViaProxy(prepared, existingUrl, folder) {
+  const formData = new FormData();
+  formData.append("file", prepared);
+  formData.append("folder", folder || "mounis-maguva/products");
+  formData.append("replaceUrl", existingUrl);
 
   const response = await fetch("/api/admin/r2/upload", {
     method: "POST",

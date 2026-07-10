@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi, jsonError } from "@/lib/admin-api";
-import { createR2UploadUrl } from "@/lib/r2";
+import { createR2OverwriteUrl, createR2UploadUrl, getR2ObjectKey } from "@/lib/r2";
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -25,11 +25,25 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unsupported image type" }, { status: 400 });
     }
 
-    const signed = await createR2UploadUrl({
-      folder,
-      contentType: contentType || "image/webp",
-      filename: body.filename ? String(body.filename) : undefined,
-    });
+    const replaceUrl = body.replaceUrl ? String(body.replaceUrl).trim() : "";
+    const replaceKey = replaceUrl ? getR2ObjectKey(replaceUrl) : null;
+
+    if (replaceUrl && !replaceKey) {
+      return NextResponse.json(
+        { error: "Only images stored on this site can be rotated in place." },
+        { status: 400 },
+      );
+    }
+
+    const signed = replaceKey
+      ? await createR2OverwriteUrl(replaceKey, {
+          contentType: contentType || "image/webp",
+        })
+      : await createR2UploadUrl({
+          folder,
+          contentType: contentType || "image/webp",
+          filename: body.filename ? String(body.filename) : undefined,
+        });
 
     return NextResponse.json({
       ok: true,

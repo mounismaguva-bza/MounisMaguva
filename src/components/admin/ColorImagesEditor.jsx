@@ -8,7 +8,7 @@ import {
   compressImageForUpload,
   isAcceptedImageFile,
 } from "@/lib/compress-image";
-import { prepareAndUploadImage, deleteUploadedImages } from "@/lib/upload-client";
+import { overwriteImageAtUrl, prepareAndUploadImage, deleteUploadedImages } from "@/lib/upload-client";
 import { normalizeProductImageSrc } from "@/lib/product-images";
 import { rotateImageFromUrl } from "@/lib/rotate-image";
 import { MAX_IMAGES_PER_COLOR } from "@/lib/constants";
@@ -26,10 +26,17 @@ function getClipboardImageFiles(clipboardData) {
   return files;
 }
 
+function withPreviewCacheBust(url, version) {
+  if (!version) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}v=${version}`;
+}
+
 export default function ColorImagesEditor({ colors, colorImages, onChange, productId }) {
   const [uploadingColor, setUploadingColor] = useState(null);
   const [rotatingKey, setRotatingKey] = useState(null);
   const [uploadError, setUploadError] = useState("");
+  const [previewVersions, setPreviewVersions] = useState({});
 
   if (!colors.length) {
     return (
@@ -131,24 +138,13 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
     setRotatingKey(key);
 
     try {
-      const rotatedFile = await rotateImageFromUrl(
-        normalizeProductImageSrc(url, url),
-        90,
-        `${color}-${index + 1}`,
-      );
-      const result = await prepareAndUploadImage(rotatedFile, {
+      const sourceUrl = normalizeProductImageSrc(url, url);
+      const rotatedFile = await rotateImageFromUrl(sourceUrl, 90, `${color}-${index + 1}`);
+      await overwriteImageAtUrl(rotatedFile, sourceUrl, {
         folder: "mounis-maguva/products",
         prepare: compressImageForUpload,
       });
-      const newUrl = normalizeProductImageSrc(result.url, null);
-      if (!newUrl) throw new Error("Rotation upload failed");
-
-      const list = [...(colorImages[color] || [])];
-      const position = list.indexOf(url);
-      if (position === -1) return;
-      list[position] = newUrl;
-      onChange(sanitizeColorImages({ ...colorImages, [color]: list }));
-      void deleteUploadedImages(url).catch(() => {});
+      setPreviewVersions((current) => ({ ...current, [url]: Date.now() }));
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "Could not rotate image");
     } finally {
@@ -195,7 +191,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
                     <div className="relative aspect-square bg-[var(--color-surface)]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={item.safe}
+                        src={withPreviewCacheBust(item.safe, previewVersions[item.raw])}
                         alt={`${color} ${index + 1}`}
                         className="absolute inset-0 h-full w-full object-contain p-2"
                         loading="lazy"
@@ -255,7 +251,7 @@ export default function ColorImagesEditor({ colors, colorImages, onChange, produ
                   onFiles={(files) => uploadFilesForColor(color, files)}
                 />
                 <p className="mt-2 text-[10px] text-[var(--color-muted)]">
-                  Use Rotate to fix photo orientation. Save the product to update the shop and product pages.
+                  Use Rotate to fix photo orientation in place. Save the product to refresh the shop and product pages.
                 </p>
               </>
             )}

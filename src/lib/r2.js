@@ -83,6 +83,14 @@ function buildObjectKey(folder, filename, contentType) {
   return `${safeFolder.replace(/\/$/, "")}/${base}.${ext}`;
 }
 
+function assertAllowedObjectKey(key) {
+  const value = String(key || "").trim();
+  if (!value.startsWith(`${ALLOWED_UPLOAD_FOLDER_PREFIX}/`)) {
+    throw new Error("Invalid object key");
+  }
+  return value;
+}
+
 function publicUrlForKey(key) {
   return `${getPublicBaseUrl()}/${key}`;
 }
@@ -161,6 +169,37 @@ export async function createR2UploadUrl(options = {}) {
 }
 
 /**
+ * Create a short-lived signed PUT URL to replace an existing R2 object (same URL).
+ * @param {string} key
+ * @param {{ contentType?: string; expiresIn?: number }} [options]
+ */
+export async function createR2OverwriteUrl(key, options = {}) {
+  await ensureR2Cors();
+
+  const objectKey = assertAllowedObjectKey(key);
+  const bucket = requiredEnv("R2_BUCKET");
+  const contentType = options.contentType || "image/webp";
+  const expiresIn = options.expiresIn || 120;
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: objectKey,
+    ContentType: contentType,
+    CacheControl: "public, max-age=0, must-revalidate",
+  });
+
+  const uploadUrl = await getSignedUrl(getR2Client(), command, { expiresIn });
+
+  return {
+    uploadUrl,
+    url: publicUrlForKey(objectKey),
+    publicId: objectKey,
+    contentType,
+    expiresIn,
+  };
+}
+
+/**
  * Upload image bytes/stream to Cloudflare R2 (server-side fallback).
  * @param {Buffer | Uint8Array | import('stream').Readable} body
  * @param {{ folder?: string; filename?: string; contentType?: string; contentLength?: number }} [options]
@@ -186,6 +225,37 @@ export async function uploadImageToR2(body, options = {}) {
   return {
     url: publicUrlForKey(key),
     publicId: key,
+    contentType,
+  };
+}
+
+/**
+ * Replace an existing R2 object in place (keeps the same public URL).
+ * @param {Buffer | Uint8Array | import('stream').Readable} body
+ * @param {string} key
+ * @param {{ contentType?: string; contentLength?: number }} [options]
+ */
+export async function uploadImageToR2AtKey(body, key, options = {}) {
+  const objectKey = assertAllowedObjectKey(key);
+  const bucket = requiredEnv("R2_BUCKET");
+  const contentType = options.contentType || "image/jpeg";
+
+  await getR2Client().send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: objectKey,
+      Body: body,
+      ContentType: contentType,
+      ...(Number.isFinite(options.contentLength)
+        ? { ContentLength: options.contentLength }
+        : {}),
+      CacheControl: "public, max-age=0, must-revalidate",
+    }),
+  );
+
+  return {
+    url: publicUrlForKey(objectKey),
+    publicId: objectKey,
     contentType,
   };
 }
